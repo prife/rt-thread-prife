@@ -1,5 +1,6 @@
 #include <rtthread.h>
 #include <stm32f10x.h>
+#include "rtc.h"
 
 static struct rt_device rtc;
 static rt_err_t rt_rtc_open(rt_device_t dev, rt_uint16_t oflag)
@@ -140,6 +141,8 @@ void rt_hw_rtc_init(void)
 
     rt_device_register(&rtc, "rtc", RT_DEVICE_FLAG_RDWR);
 
+	list_date();
+
     return;
 }
 
@@ -216,7 +219,7 @@ void set_time(rt_uint32_t hour, rt_uint32_t minute, rt_uint32_t second)
 }
 FINSH_FUNCTION_EXPORT(set_time, set time. e.g: set_time(23,59,59))
 
-void list_date()
+void list_date(void)
 {
     time_t now;
 
