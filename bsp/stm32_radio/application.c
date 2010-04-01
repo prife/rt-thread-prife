@@ -75,9 +75,11 @@ void rt_init_thread_entry(void *parameter)
 #ifdef RT_USING_RTGUI
     {
         extern void rt_hw_key_init(void);
+        extern void remote_init(void);
 
         radio_rtgui_init();
         rt_hw_key_init();
+        remote_init();
     }
 #endif
 

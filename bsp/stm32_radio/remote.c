@@ -15,6 +15,9 @@
 #include <dfs_posix.h>
 #include <stm32f10x.h>
 
+#include <rtgui/event.h>
+#include <rtgui/rtgui_server.h>
+
 /* 重定义printf */
 #define printf                   rt_kprintf
 /* 设置允许偏差,单位0.01ms */
@@ -26,9 +29,12 @@
 /* 红外模式 0:没启动,1:自学习,2:正常解码 */
 unsigned int rem_mode = 0;
 
-static unsigned int first_tick = 0;
-static unsigned int rx_count = 0;
+static unsigned int first_tick = 0;  /* 本次开始捕获的时间戳 */
+static unsigned int rx_count   = 0;    /* 本次捕获中捕获到的信号计数. */
 static unsigned short rm_code[remote_code_len_max];
+
+/* 信号量对象*/
+static struct rt_semaphore sem_IR;
 
 struct rem_codes_typedef
 {
@@ -45,6 +51,32 @@ static const char  str5[]="KEY_ENTER";  /* 确认 */
 static const char  str6[]="KEY_RETURN"; /* 返回 */
 static const char * desc_key[6]= {str1,str2,str3,str4,str5,str6};
 
+/* 将数据转换成 #####\r\n 格式的文本 */
+static void dectoascii(unsigned int date_input,char * p)
+{
+    p[0] = date_input / 10000 +'0';
+    date_input = date_input % 10000;
+    p[1] = date_input / 1000  +'0';
+    date_input = date_input % 1000;
+    p[2] = date_input / 100   +'0';
+    date_input = date_input % 100;
+    p[3] = date_input / 10    +'0';
+    date_input = date_input % 10;
+    p[4] = date_input        +'0';
+    date_input = 0;
+    p[5] = '\r';
+    p[6] = '\n';
+    p += 7;
+}
+/* 将#####\r\n 格式文本转换成数据 */
+static unsigned short asciitodec(const char * p_str)
+{
+    return  ( (p_str[0]-'0')*10000
+              + (p_str[1]-'0')*1000
+              + (p_str[2]-'0')*100
+              + (p_str[3]-'0')*10
+              + (p_str[4]-'0') );
+}
 
 /* tim5 configure */
 static void TIM5_Configuration(void)
@@ -160,7 +192,7 @@ void rem_start(void)
             fd = open(remote_fn,O_RDONLY,0);
             if( fd>0 )
             {
-                printf("\r/resource/remote.txt open succeed");
+                printf("\r/resource/remote.txt open succeed.\r\n");
                 while( EOF_flag )
                 {
                     /* 读取长度 */
@@ -168,15 +200,12 @@ void rem_start(void)
                     if( (size == 7) && (buf[5]=='\r') && buf[6]=='\n' )
                     {
                         /* 转换得到样本数据长度 */
-                        tmp =   (buf[0]-'0')*10000
-                                + (buf[1]-'0')*1000
-                                + (buf[2]-'0')*100
-                                + (buf[3]-'0')*10
-                                + (buf[4]-'0');
+                        tmp = asciitodec(buf);
                         if( tmp<100 )
                         {
                             unsigned int code_len = tmp;
                             p_rem_code_src[read_index].len = code_len;
+                            printf("code_len = %d\r\n",code_len);
                             /* 如果样本长度符合 就开始从文件读取编码数据 */
                             for(i=0; i<code_len; i++)
                             {
@@ -184,11 +213,7 @@ void rem_start(void)
                                 if( (size == 7) && (buf[5]=='\r') && buf[6]=='\n' )
                                 {
                                     /* 转换得到样本数据 */
-                                    tmp =   (buf[0]-'0')*10000
-                                            + (buf[1]-'0')*1000
-                                            + (buf[2]-'0')*100
-                                            + (buf[3]-'0')*10
-                                            + (buf[4]-'0');
+                                    tmp = asciitodec(buf);
                                     p_rem_code_src[read_index].rem_code[i] = tmp;
                                 }
                             }
@@ -230,13 +255,10 @@ void rem_start(void)
     }
 }
 
-#include <rtgui/event.h>
-void rem_encoder(struct rtgui_event_kbd * p)
+void rem_encoder(struct rtgui_event_kbd * p_kbd_event)
 {
-    struct rtgui_event_kbd * p_kbd_event = p;
-
     /* 检查是否有数据被捕获 */
-    if( (rem_mode==2) && (rt_tick_get()>first_tick+10) && (rx_count > 0) )
+    if( (rem_mode==2) && (rx_count > 0) )
     {
         /* 手动清零第一个捕获结果 */
         rm_code[0] = 0;
@@ -310,27 +332,27 @@ void rem_encoder(struct rtgui_event_kbd * p)
 
             }
         }
-    }//红外遥控匹配
+    }/* 红外遥控匹配 */
 }
 
 /* remote isr */
 void remote_isr(void)
 {
-    static unsigned int clr_flag = 1;
-    unsigned int tick_now  = rt_tick_get();
+    static unsigned int clr_flag = 1;      /* 是否需要清零标致,用来判断是否是某次捕获的起点. */
+    unsigned int tick_now  = rt_tick_get();/* 获取当前时间戳.*/
 
     /* 红外遥控下降沿 */
     if(TIM_GetITStatus(TIM5, TIM_IT_CC3) == SET)
     {
         switch( rem_mode )
         {
-        case 0://未启动
+        case 0:/* 未启动 */
             break;
-        case 1://自学习
-            if( (rx_count==0) || (rx_count>90) || (tick_now>first_tick+10) )
+        case 1:/* 自学习 */
+            /* 如果总的接收计数为0,则判定这是一次开始,需要清零. */
+            if( rx_count==0 )
             {
                 //需要清0
-                rx_count = 0;
                 clr_flag = 1;
             }
             if( rx_count < remote_code_len_max )
@@ -339,7 +361,7 @@ void remote_isr(void)
             }
             break;
         case 2://正常解码
-            if( (rx_count>90) || tick_now>first_tick+10 )
+            if( ( rx_count>(remote_code_len_max-10) ) || tick_now>first_tick+10 )
             {
                 rx_count = 0;
                 clr_flag = 1;
@@ -350,7 +372,7 @@ void remote_isr(void)
             }
             break;
         default:
-            rem_mode = 0;//设置模式为未启动
+            rem_mode = 0;/* 异常跳入,则关闭红外摇控 */
             break;
         }
         TIM_ClearITPendingBit(TIM5, TIM_IT_CC3);
@@ -373,21 +395,25 @@ void remote_isr(void)
             if( rx_count < remote_code_len_max )
             {
                 rm_code[rx_count++] = TIM_GetCapture4(TIM5);
+                if( p_rem_code_src[0].len == rx_count)
+                {
+                    rt_sem_release(&sem_IR);
+                }
             }
             break;
         default:
-            rem_mode = 0;//设置模式为未启动
+            rem_mode = 0;/* 异常跳入,则关闭红外摇控 */
             break;
         }
         TIM_ClearITPendingBit(TIM5, TIM_IT_CC4);
     }
 
-    //更新时间戳
+    /* 更新时间戳 */
     first_tick = tick_now;
-    //检测是否需要重置计数器
+    /* 检测是否需要重置计数器 */
     if( clr_flag )
     {
-        //重置计数器
+        /* 重置计数器 */
         TIM_SetCounter(TIM5,0);
         clr_flag = 0;
     }
@@ -400,7 +426,7 @@ int rem_study(void)
     unsigned int i;
 
     int fd,size;
-    unsigned char tmp_buf[ (remote_code_len_max+1)*7 ];
+    char tmp_buf[ (remote_code_len_max+1)*7 ];
 
     rem_mode = 1;
     rx_count = 0;
@@ -420,18 +446,42 @@ int rem_study(void)
     for( i=0; i<6; i++)
     {
         unsigned int is_ok = 1;
+        memset(rm_code,0,sizeof(rm_code));
         printf("\r\npress key %s",desc_key[i]);
         while( is_ok==1 )
         {
-            if( (rem_mode==1) && (rt_tick_get()>first_tick+10) && (rx_count > 0) )
+            /* 如果在200ms内有捕获到数据. */
+            if( (rem_mode==1) && (rt_tick_get()>first_tick+20) && (rx_count > 0) )
             {
-                unsigned int a,b;
-                unsigned char * p = tmp_buf;
+                unsigned int a,rx_count_current;
+                char * p = tmp_buf;
 
                 printf("\r\n%s",desc_key[i]);
 
-                b = rx_count;
-                p_rem_code_src[i].len = rx_count;
+                printf("  rx_count : %d",rx_count);
+
+                rm_code[0] = 0;
+
+                /* 从捕获到的数据中取得第一个有效段的长度. */
+                {
+                    unsigned int i = 0;
+                    rx_count_current = 0;
+                    while( rx_count_current==0 )
+                    {
+                        /* 如果此点距离下点小于20ms,且下点不为0,则认为有效. */
+                        if( ((rm_code[i]+2000)>rm_code[i+1] ) && (rm_code[i+1] != 0) )
+                        {
+                            i++;
+                        }
+                        else /* 否则就是无效.*/
+                        {
+                            /* 获得本次捕获的有效记录数. */
+                            rx_count_current = i+1;
+                        }
+                    }
+                    printf("  rx_count_current : %d",rx_count_current);
+                }
+                p_rem_code_src[i].len = rx_count_current;
 
                 /* TIM disable counter */
                 TIM_Cmd(TIM5, DISABLE);
@@ -439,47 +489,26 @@ int rem_study(void)
                 TIM_ITConfig(TIM5, TIM_IT_CC3, DISABLE);
                 TIM_ITConfig(TIM5, TIM_IT_CC4, DISABLE);
 
-                p[0] = rx_count / 10000 +'0';
-                rx_count = rx_count % 10000;
-                p[1] = rx_count / 1000  +'0';
-                rx_count = rx_count % 1000;
-                p[2] = rx_count / 100   +'0';
-                rx_count = rx_count % 100;
-                p[3] = rx_count / 10    +'0';
-                rx_count = rx_count % 10;
-                p[4] = rx_count        +'0';
-                rx_count = 0;
-                p[5] = '\r';
-                p[6] = '\n';
+                /* 把本次捕获的有效记录数转换成十进制ASCII保存. */
+                dectoascii(rx_count_current,p);
                 p += 7;
 
-                rm_code[0] = 0;
-
-                for( a=0; a<b; a++)
+                for( a=0; a<rx_count_current; a++)
                 {
                     /* 把当前数据直接写进样品数据 */
                     p_rem_code_src[i].rem_code[a] = rm_code[a];
-
                     /* 然后转换成文本格式 #####\r\n */
-                    p[0] = rm_code[a] / 10000 +'0';
-                    rm_code[a] = rm_code[a] % 10000;
-                    p[1] = rm_code[a] / 1000  +'0';
-                    rm_code[a] = rm_code[a] % 1000;
-                    p[2] = rm_code[a] / 100   +'0';
-                    rm_code[a] = rm_code[a] % 100;
-                    p[3] = rm_code[a] / 10   +'0';
-                    rm_code[a] = rm_code[a] % 10;
-                    p[4] = rm_code[a]        +'0';
-                    p[5] = '\r';
-                    p[6] = '\n';
+                    dectoascii(rm_code[a],p);
                     p += 7;
                 }
-                size = write(fd,(char*)tmp_buf,(b+1)*7 );
-                if( size==((b+1)*7) )
+                size = write(fd,(char*)tmp_buf,(rx_count_current+1)*7 );
+                if( size==((rx_count_current+1)*7) )
                 {
                     printf(" file write succeed!");
                     is_ok++;
                     rt_thread_delay( 2 );
+
+                    rx_count = 0;//清零接收计数,以便进行再次捕获
 
                     /* 重新打开 TIM5 进行捕获 */
                     TIM_ClearITPendingBit(TIM5, TIM_IT_CC3);
@@ -505,3 +534,50 @@ int rem_study(void)
     return 0;
 }
 FINSH_FUNCTION_EXPORT(rem_study, rem_study);
+
+static struct rtgui_event_kbd kbd_event;
+static void remote_thread_entry(void *parameter)
+{
+    /* init keyboard event */
+    RTGUI_EVENT_KBD_INIT(&kbd_event);
+    kbd_event.mod  = RTGUI_KMOD_NONE;
+    kbd_event.unicode = 0;
+
+    while(1)
+    {
+        /* 等待信号量,信号量在捕获到一定的数据后被释放 */
+        if (rt_sem_take(&sem_IR,RT_WAITING_FOREVER) == RT_EOK)
+        {
+            kbd_event.key = RTGUIK_UNKNOWN;
+            if( rem_mode == 2)
+            {
+                rem_encoder(&kbd_event);
+            }
+            if( kbd_event.key != RTGUIK_UNKNOWN)
+            {
+                kbd_event.type = RTGUI_KEYDOWN;
+                /* post down event */
+                rtgui_server_post_event(&(kbd_event.parent), sizeof(kbd_event));
+                rt_thread_delay(20);
+
+                /* post up event */
+                kbd_event.type = RTGUI_KEYUP;
+                rtgui_server_post_event(&(kbd_event.parent), sizeof(kbd_event));
+            }
+        }
+    }
+}
+
+void remote_init(void)
+{
+    rt_thread_t remote_thread;
+
+    rt_sem_init(&sem_IR,"sem_IR", 0,RT_IPC_FLAG_FIFO);
+
+    rem_start();
+
+    remote_thread = rt_thread_create("remote",
+                                     remote_thread_entry, RT_NULL,
+                                     384, 30, 2);
+    if (remote_thread != RT_NULL)rt_thread_startup(remote_thread);
+}

@@ -17,12 +17,6 @@ key_left    PG13
 #define key_right_GETVALUE()  GPIO_ReadInputDataBit(GPIOG,GPIO_Pin_14)
 #define key_left_GETVALUE()   GPIO_ReadInputDataBit(GPIOG,GPIO_Pin_13)
 
-/* from remote.c */
-extern void rem_start(void);
-extern void rem_encoder(struct rtgui_event_kbd * p);
-extern unsigned int rem_mode;
-/* from remote.c */
-
 static void GPIO_Configuration(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -51,8 +45,6 @@ static void key_thread_entry(void *parameter)
     struct rtgui_event_kbd kbd_event;
 
     GPIO_Configuration();
-    /* start remote */
-    rem_start();
 
     /* init keyboard event */
     RTGUI_EVENT_KBD_INIT(&kbd_event);
@@ -64,11 +56,6 @@ static void key_thread_entry(void *parameter)
         next_delay = 10;
         kbd_event.key = RTGUIK_UNKNOWN;
         kbd_event.type = RTGUI_KEYDOWN;
-
-        if( rem_mode== 2 )
-        {
-            rem_encoder(&kbd_event);
-        }
 
         if ( key_enter_GETVALUE() == 0 )
         {
@@ -134,6 +121,6 @@ void rt_hw_key_init(void)
 {
     key_tid = rt_thread_create("key",
                                key_thread_entry, RT_NULL,
-                               768, 30, 5);
+                               384, 30, 5);
     if (key_tid != RT_NULL) rt_thread_startup(key_tid);
 }
