@@ -13,7 +13,7 @@ extern unsigned short ili9325_ReadGRAM(unsigned short x,unsigned short y);
 extern void ili9325_WriteReg(u8 LCD_Reg,u16 LCD_RegValue);
 
 /* If LCD Display in wrong dirction uncomment this option*/
-#define _ILI_REVERSE_DIRECTION_
+//#define _ILI_REVERSE_DIRECTION_
 
 /* LCD is connected to the FSMC_Bank1_NOR/SRAM2 and NE2 is used as ship select signal */
 /* RS <==> A2 */

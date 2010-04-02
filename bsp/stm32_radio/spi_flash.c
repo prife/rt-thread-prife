@@ -8,7 +8,7 @@
  * Don't set SPI_FLASH_USE_DMA to 1 unless you know what you're doing!
  * However, readonly access is just fine. :)
  */
-#define SPI_FLASH_USE_DMA	0
+#define SPI_FLASH_USE_DMA	1
 #define SECTOR_SIZE			512
 
 extern uint8_t SPI_WriteByte(unsigned char data);

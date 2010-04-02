@@ -104,11 +104,22 @@ void ftm0371_port_init(void)
     FSMC_Init();
 }
 
+extern void rt_kprintf(const char *fmt, ...);
+#define printf   rt_kprintf
+
 //³õÊ¼»¯º¯Êý
 void ftm0371_init(void)
 {
-//    LCD_RST_1;
-//	delay_ms(1000);
+    unsigned char deviceid;
+
+    LCD_ADDR = 0xF0;
+    deviceid = LCD_DATA;
+    if( deviceid != 0x50 )
+    {
+        printf("Invalid LCD ID:%02X\r\n",deviceid);
+        printf("Please check you hardware and configure.");
+        while(1);
+    }
 
     //initializing funciton 1
     LCD_WR_REG(0xA1);
