@@ -388,6 +388,8 @@ static int shoutcast_connect(struct shoutcast_session* session,
 	if ( peer_handle < 0 )
 	{
 		rt_kprintf( "ICY: CONNECT FAILED %i\n", peer_handle );
+		lwip_close(socket_handle);
+		
 		return -1;
 	}
 
@@ -415,7 +417,11 @@ static int shoutcast_connect(struct shoutcast_session* session,
 		rc = http_read_line(peer_handle, mimeBuffer, 100);
 		rt_kprintf(">>%s", mimeBuffer);
 
-		if ( rc < 0 ) return rc;
+		if ( rc < 0 )
+		{
+			lwip_close(socket_handle);
+			return rc;
+		}
 
 		// End of headers is a blank line.  exit.
 		if (rc == 0) break;
@@ -427,6 +433,7 @@ static int shoutcast_connect(struct shoutcast_session* session,
 			if(rc)
 			{
 				rt_kprintf("ICY: status code = %d!\n", rc);
+				lwip_close(socket_handle);
 				return -rc;
 			}
 		}
@@ -437,6 +444,7 @@ static int shoutcast_connect(struct shoutcast_session* session,
 			if(rc)
 			{
 				rt_kprintf("HTTP: status code = %d!\n", rc);
+				lwip_close(socket_handle);
 				return -rc;
 			}
 		}
@@ -471,6 +479,7 @@ static int shoutcast_connect(struct shoutcast_session* session,
 			if (strstr(mimeBuffer, "audio/mpeg") == RT_NULL)
 			{
 				rt_kprintf("ICY content is not audio/mpeg.\n");
+				lwip_close(socket_handle);
 				return -1;
 			}
 		}
@@ -481,6 +490,7 @@ static int shoutcast_connect(struct shoutcast_session* session,
 			if (strstr(mimeBuffer, "audio/mpeg") == RT_NULL)
 			{
 				rt_kprintf("ICY content is not audio/mpeg.\n");
+				lwip_close(socket_handle);
 				return -1;
 			}
 		}
@@ -491,6 +501,10 @@ static int shoutcast_connect(struct shoutcast_session* session,
 	return peer_handle;
 }
 
+#include <finsh.h>
+rt_uint32_t total = 0;
+FINSH_VAR_EXPORT(total, finsh_type_uint, total read in net);
+	
 struct shoutcast_session* shoutcast_session_open(char* url)
 {
 	int peer_handle = 0;
@@ -498,6 +512,8 @@ struct shoutcast_session* shoutcast_session_open(char* url)
 	char *request, host_addr[32];
 	struct shoutcast_session* session;
 
+	total = 0;
+	
     session = (struct shoutcast_session*) rt_malloc(sizeof(struct shoutcast_session));
 	if(session == RT_NULL) return RT_NULL;
 
@@ -551,6 +567,8 @@ rt_size_t shoutcast_session_read(struct shoutcast_session* session, rt_uint8_t *
 				lwip_get_error(session->socket));
 			break;
 		}
+
+		total += bytesRead;
 
 		left -= bytesRead;
 		totalRead += bytesRead;

@@ -127,6 +127,7 @@ rt_size_t net_buf_read(rt_uint8_t* buffer, rt_size_t length)
 			_netbuf.read_index = length - (_netbuf.size - read_index);
         }
 
+		/* update length of data in buffer */
 		level = rt_hw_interrupt_disable();
 		_netbuf.data_length -= length;
 		data_length = _netbuf.data_length;

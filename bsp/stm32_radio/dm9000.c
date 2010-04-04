@@ -447,6 +447,8 @@ struct pbuf *rt_dm9000_rx(rt_device_t dev)
 {
     struct pbuf* p;
     rt_uint32_t rxbyte;
+    rt_uint16_t rx_status, rx_len;
+    rt_uint16_t* data;
 
     /* init p pointer */
     p = RT_NULL;
@@ -454,14 +456,12 @@ struct pbuf *rt_dm9000_rx(rt_device_t dev)
     /* lock DM9000 device */
     rt_sem_take(&sem_lock, RT_WAITING_FOREVER);
 
+__error_retry:
     /* Check packet ready or not */
     dm9000_io_read(DM9000_MRCMDX);	    		/* Dummy read */
     rxbyte = DM9000_inb(DM9000_DATA_BASE);		/* Got most updated data */
     if (rxbyte)
     {
-        rt_uint16_t rx_status, rx_len;
-        rt_uint16_t* data;
-
         if (rxbyte > 1)
         {
             DM9000_TRACE("dm9000 rx: rx error, stop device\n");
@@ -517,7 +517,7 @@ struct pbuf *rt_dm9000_rx(rt_device_t dev)
         if ((rx_status & 0xbf00) || (rx_len < 0x40)
                 || (rx_len > DM9000_PKT_MAX))
         {
-            rt_kprintf("rx error: status %04x\n", rx_status);
+            rt_kprintf("rx error: status %04x, rx_len: %d\n", rx_status, rx_len);
 
             if (rx_status & 0x100)
             {
@@ -543,6 +543,8 @@ struct pbuf *rt_dm9000_rx(rt_device_t dev)
             /* it issues an error, release pbuf */
             if (p != RT_NULL) pbuf_free(p);
             p = RT_NULL;
+			
+			goto __error_retry;
         }
     }
     else
