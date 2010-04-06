@@ -14,6 +14,9 @@
 #include "ili9325/ili9325.h"
 #endif
 
+void lcd_backlight_init(void);
+void brightness_set(unsigned int value);
+
 rt_err_t rt_hw_lcd_init(void);
 void rt_hw_lcd_update(rtgui_rect_t *rect);
 rt_uint8_t * rt_hw_lcd_get_framebuffer(void);
@@ -192,15 +195,7 @@ void rt_hw_lcd_draw_raw_hline(rt_uint8_t *pixels, rt_base_t x1, rt_base_t x2, rt
 
 rt_err_t rt_hw_lcd_init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF,ENABLE);
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOF,&GPIO_InitStructure);
-    GPIO_SetBits(GPIOF,GPIO_Pin_9);
-
+    lcd_backlight_init();
     ftm0371_port_init();
     ftm0371_init();
 
@@ -387,15 +382,7 @@ void rt_hw_lcd_draw_raw_hline(rt_uint8_t *pixels, rt_base_t x1, rt_base_t x2, rt
 
 rt_err_t rt_hw_lcd_init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF,ENABLE);
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOF,&GPIO_InitStructure);
-    GPIO_SetBits(GPIOF,GPIO_Pin_9);
-
+    lcd_backlight_init();
     ili9325_Initializtion();
 
     /* LCD GRAM TEST */
@@ -461,3 +448,74 @@ void cls()
 }
 FINSH_FUNCTION_EXPORT(cls, clear screen);
 #endif
+
+#if LCD_USE_PWM
+static TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+static TIM_OCInitTypeDef  TIM_OCInitStructure;
+#define ARR  12000
+#endif
+
+void lcd_backlight_init(void)
+{
+    /* for old version */
+    GPIO_InitTypeDef GPIO_InitStructure;
+#if !LCD_USE_PWM
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF,ENABLE);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOF,&GPIO_InitStructure);
+    GPIO_SetBits(GPIOF,GPIO_Pin_9);
+    /* for old version */
+#else
+    /* new version: use pwm in PB8 */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
+    /* TIM4 clock enable */
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+
+    /* GPIOB Configuration:TIM4 Channel4 as alternate function push-pull */
+    GPIO_InitStructure.GPIO_Pin   =  GPIO_Pin_9;//GPIO_Pin_8 |
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    /* Time base configuration */
+    TIM_TimeBaseStructure.TIM_Period = ARR;//12000
+    TIM_TimeBaseStructure.TIM_Prescaler = 2;//Ô¤·ÖÆµ2,ÆµÂÊ36M
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
+
+    /* PWM1 Mode configuration: Channel1 */
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+    /* PWM1 Mode configuration: Channel4 */
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_Pulse = (ARR/100)*80;
+    TIM_OC4Init(TIM4, &TIM_OCInitStructure);
+
+    TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
+    TIM_ARRPreloadConfig(TIM4, ENABLE);
+    /* TIM4 enable counter */
+    TIM_Cmd(TIM4, ENABLE);
+#endif
+}
+
+void brightness_set(unsigned int value)
+{
+#if !LCD_USE_PWM
+    if(value)
+    {
+        GPIO_SetBits(GPIOF,GPIO_Pin_9);
+    }
+    else
+    {
+        GPIO_ResetBits(GPIOF,GPIO_Pin_9);
+    }
+#else
+    TIM_OCInitStructure.TIM_Pulse = (ARR/100)*value;
+    TIM_OC4Init(TIM4, &TIM_OCInitStructure);
+#endif
+}
+FINSH_FUNCTION_EXPORT(brightness_set, set lcd_brightness);

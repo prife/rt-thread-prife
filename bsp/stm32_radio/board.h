@@ -48,6 +48,10 @@
 // 	<i>Default: 1
 #define LCD_VERSION             2
 
+// <o> LCD Module brightness use PWM: <0=>NO <1=>YES
+// 	<i>Default: 1
+#define LCD_USE_PWM             0
+
 /*
  * IMPORTANT NOTICE:
  * CODEC_MASTER_MODE = 1 with CODEC_USE_SPI3 = 0 is unusable due to a hardware bug of STM32's SPI2.
@@ -55,7 +59,7 @@
 // <o> CODEC Mode
 // <0=>I2S Slave
 // <1=>I2S Master
-#define CODEC_MASTER_MODE	0
+#define CODEC_MASTER_MODE	1
 
 // <o> CODEC SPI Port
 // <0=>SPI2
