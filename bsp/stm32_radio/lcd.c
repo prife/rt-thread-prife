@@ -492,7 +492,7 @@ void lcd_backlight_init(void)
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
     /* PWM1 Mode configuration: Channel4 */
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = (ARR/100)*80;
+    TIM_OCInitStructure.TIM_Pulse = (ARR/100)*60; /* 设置初始背光亮度 */
     TIM_OC4Init(TIM4, &TIM_OCInitStructure);
 
     TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
@@ -514,8 +514,9 @@ void brightness_set(unsigned int value)
         GPIO_ResetBits(GPIOF,GPIO_Pin_9);
     }
 #else
+    if(value>100)value=50;
     TIM_OCInitStructure.TIM_Pulse = (ARR/100)*value;
     TIM_OC4Init(TIM4, &TIM_OCInitStructure);
 #endif
 }
-FINSH_FUNCTION_EXPORT(brightness_set, set lcd_brightness);
+FINSH_FUNCTION_EXPORT(brightness_set, set lcd_brightness 0~100);
