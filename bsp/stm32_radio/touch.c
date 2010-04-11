@@ -1,6 +1,7 @@
 #include "stm32f10x.h"
 
 #include "board.h"
+#include "touch.h"
 
 #include <rtthread.h>
 #include <rtgui/event.h>
@@ -32,6 +33,12 @@ struct rtgui_touch_device
 
 	rt_timer_t poll_timer;
 	rt_uint16_t x, y;
+
+	rt_bool_t calibrating;
+	rt_touch_calibration_func_t calibration_func;
+
+	rt_uint16_t min_x, max_x;
+	rt_uint16_t min_y, max_y;
 };
 static struct rtgui_touch_device *touch = RT_NULL;
 
@@ -66,23 +73,26 @@ static void rtgui_touch_calculate()
 
 		// rt_kprintf("touch(%d, %d)\n", touch->x, touch->y);
 
-		/* Ð£Õý */
-		if (X_MAX > X_MIN)
+		/* if it's not in calibration status  */
+		if (touch->calibrating != RT_TRUE)
 		{
-			touch->x = (touch->x - X_MIN) * X_WIDTH/(X_MAX - X_MIN);
-		}
-		else
-		{
-			touch->x = (X_MIN - touch->x) * X_WIDTH/(X_MIN - X_MAX);
-		}
+			if (touch->max_x > touch->min_x)
+			{
+				touch->x = (touch->x - touch->min_x) * X_WIDTH/(touch->max_x - touch->min_x);
+			}
+			else
+			{
+				touch->x = (touch->min_x - touch->x) * X_WIDTH/(touch->min_x - touch->max_x);
+			}
 
-		if (Y_MAX > Y_MIN)
-		{
-			touch->y = (touch->y - Y_MIN) * Y_WIDTH /(Y_MAX - Y_MIN);
-		}
-		else
-		{
-			touch->y = (Y_MIN - touch->y) * Y_WIDTH /(Y_MIN - Y_MAX);
+			if (touch->max_y > touch->min_y)
+			{
+				touch->y = (touch->y - touch->min_y) * Y_WIDTH /(touch->max_y - touch->min_y);
+			}
+			else
+			{
+				touch->y = (touch->min_y - touch->y) * Y_WIDTH /(touch->min_y - touch->max_y);
+			}
 		}
 	}
 }
@@ -104,6 +114,12 @@ void touch_timeout(void* parameter)
 		/* stop timer */
 		rt_timer_stop(touch->poll_timer);
 		rt_kprintf("touch up: (%d, %d)\n", emouse.x, emouse.y);
+
+		if ((touch->calibrating == RT_TRUE) && (touch->calibration_func != RT_NULL))
+		{
+			/* callback function */
+			touch->calibration_func(emouse.x, emouse.y);
+		}
 	}
 	else
 	{
@@ -123,7 +139,8 @@ void touch_timeout(void* parameter)
 	}
 
 	/* send event to server */
-	rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
+	if (touch->calibrating != RT_TRUE)
+		rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
 }
 
 static void NVIC_Configuration(void)
@@ -232,6 +249,28 @@ static rt_err_t rtgui_touch_init (rt_device_t dev)
 
 static rt_err_t rtgui_touch_control (rt_device_t dev, rt_uint8_t cmd, void *args)
 {
+	switch (cmd)
+	{
+	case RT_TOUCH_CALIBRATION:
+		touch->calibrating = RT_TRUE;
+		touch->calibration_func = (rt_touch_calibration_func_t)args;
+		break;
+
+	case RT_TOUCH_NORMAL:
+		touch->calibrating = RT_FALSE;
+		break;
+
+	case RT_TOUCH_CALIBRATION_DATA:
+		{
+			struct calibration_data* data;
+
+			data = (struct calibration_data*) args;
+			touch->min_x = data->min_x; touch->max_x = data->max_x;
+			touch->min_y = data->min_y; touch->max_y = data->max_y;
+		}
+		break;
+	}
+
 	return RT_EOK;
 }
 
@@ -255,7 +294,8 @@ void EXTI1_IRQHandler(void)
 	rt_kprintf("touch down: (%d, %d)\n", emouse.x, emouse.y);
 
 	/* send event to server */
-	rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
+	if (touch->calibrating != RT_TRUE)
+		rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
 
 	/* disable interrupt */
 	EXTI_Enable(0);
@@ -274,6 +314,9 @@ void rtgui_touch_hw_init()
 
 	/* clear device structure */
 	rt_memset(&(touch->parent), 0, sizeof(struct rt_device));
+	touch->calibrating = FALSE;
+	touch->min_x = X_MIN; touch->max_x = X_MAX;
+	touch->min_y = Y_MIN; touch->max_y = Y_MAX;
 
 	/* init device structure */
 	touch->parent.type = RT_Device_Class_Unknown;
@@ -281,7 +324,7 @@ void rtgui_touch_hw_init()
 	touch->parent.control = rtgui_touch_control;
 	touch->parent.private = RT_NULL;
 
-	/* create 0.5 second timer */
+	/* create 1/8 second timer */
 	touch->poll_timer = rt_timer_create("touch", touch_timeout, RT_NULL,
 		RT_TICK_PER_SECOND/8, RT_TIMER_FLAG_PERIODIC);
 
