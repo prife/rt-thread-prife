@@ -76,9 +76,11 @@ void rt_init_thread_entry(void *parameter)
     {
         extern void rt_hw_key_init(void);
         extern void remote_init(void);
+		extern void rtgui_touch_hw_init(void);
 
         radio_rtgui_init();
         rt_hw_key_init();
+		rtgui_touch_hw_init();
         remote_init();
     }
 #endif

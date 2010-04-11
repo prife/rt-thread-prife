@@ -198,11 +198,9 @@ void update_radio_list_req(void)
 
     struct player_request request;
     extern rt_mq_t player_thread_mq;
-    char* ch = RT_NULL;
 
     update_radio_list_state = UPDATE_RAIDO_LIST_PROC;
     request.type = PLAYER_REQUEST_UPDATE_RADIO_LIST;
-    ch = strcpy(request.fn, RADIO_LIST_UPDATE_URL);
 
     /* send to message queue */
     rt_mq_send(update_radio_mq, (void*)&request, sizeof(struct player_request));
