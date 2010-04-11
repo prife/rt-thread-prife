@@ -10,7 +10,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2007-01-10     Bernard      the first version
- * 2008-07-12	  Bernard	   remove all rt_int8, rt_uint32_t etc typedef
+ * 2008-07-12	  Bernard	   remove all type of rt_int8, rt_uint32 etc
  */
 #ifndef __RT_DEF_H__
 #define __RT_DEF_H__
@@ -23,7 +23,7 @@ extern "C" {
 
 /* RT-Thread version information */
 #define RT_VERSION						3
-#define RT_SUBVERSION					0
+#define RT_SUBVERSION					1
 
 /* date type defination					*/
 typedef signed 	 char  					rt_int8_t;

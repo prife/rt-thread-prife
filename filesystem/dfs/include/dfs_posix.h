@@ -62,6 +62,12 @@
 #define S_IWOTH		DFS_S_IWOTH
 #define S_IXOTH		DFS_S_IXOTH
 
+#ifdef SEEK_SET
+#undef SEEK_SET
+#undef SEEK_CUR
+#undef SEEK_END
+#endif
+
 #define SEEK_SET	DFS_SEEK_SET
 #define SEEK_CUR	DFS_SEEK_CUR
 #define SEEK_END	DFS_SEEK_END
