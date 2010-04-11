@@ -267,7 +267,7 @@ int list_mempool()
 				mp->block_size, mp->block_total_count, mp->block_free_count,
 				mp->suspend_thread_count);
 			show_wait_queue(&(mp->suspend_thread));
-			rt_kprintf("\n");			
+			rt_kprintf("\n");
 		}
 		else
 		{
@@ -316,8 +316,9 @@ int list_device()
 		"Block Device",
 		"Network Interface",
 		"MTD Device",
-		"CAN",
-		"RTC",
+		"CAN Interface",
+		"RTC Device",
+		"Sound Device",
 		"Unknown"
 	};
 
