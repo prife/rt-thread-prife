@@ -271,7 +271,7 @@ void rt_hw_board_init()
         SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
         SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
         SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
-        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;/* 72M/64=1.125M */
+        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;/* 72M/64=1.125M */
         SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
         SPI_InitStructure.SPI_CRCPolynomial = 7;
 
@@ -282,10 +282,10 @@ void rt_hw_board_init()
         SPI_Cmd(SPI1, ENABLE);
         SPI_CalculateCRC(SPI1, DISABLE);
 
-    	if (rt_sem_init(&spi1_lock, "spi1lock", 1, RT_IPC_FLAG_FIFO) != RT_EOK)
-    	{
-    		rt_kprintf("init spi1 lock semaphore failed\n");
-    	}
+        if (rt_sem_init(&spi1_lock, "spi1lock", 1, RT_IPC_FLAG_FIFO) != RT_EOK)
+        {
+            rt_kprintf("init spi1 lock semaphore failed\n");
+        }
     }
 
 }/* rt_hw_board_init */
