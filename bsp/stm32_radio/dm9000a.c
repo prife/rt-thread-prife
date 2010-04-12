@@ -1,5 +1,5 @@
 #include <rtthread.h>
-#include "dm9000.h"
+#include "dm9000a.h"
 
 #include <netif/ethernetif.h>
 #include "lwipopts.h"
@@ -275,9 +275,9 @@ static rt_err_t rt_dm9000_init(rt_device_t dev)
         while (!(phy_read(1) & 0x20))
         {
             /* autonegation complete bit */
-            rt_thread_delay(10);
+            rt_thread_delay( RT_TICK_PER_SECOND/2 );
             i++;
-            if (i == 10000)
+            if (i > 20)
             {
                 rt_kprintf("could not establish link\n");
                 return 0;
@@ -543,7 +543,7 @@ __error_retry:
             /* it issues an error, release pbuf */
             if (p != RT_NULL) pbuf_free(p);
             p = RT_NULL;
-			
+
 			goto __error_retry;
         }
     }

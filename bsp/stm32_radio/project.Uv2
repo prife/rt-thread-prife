@@ -26,7 +26,6 @@ File 1,1,<.\stm32f10x_it.c><stm32f10x_it.c>
 File 1,1,<.\usart.c><usart.c>
 File 1,1,<.\sdcard.c><sdcard.c>
 File 1,1,<.\rtc.c><rtc.c>
-File 1,1,<.\dm9000.c><dm9000.c>
 File 1,1,<.\fsmc_nand.c><fsmc_nand.c>
 File 1,1,<.\fsmc_sram.c><fsmc_sram.c>
 File 1,1,<.\fmt0371\fmt0371.c><fmt0371.c>
@@ -50,6 +49,7 @@ File 1,1,<.\ili9325\ili9325.c><ili9325.c>
 File 1,1,<.\touch.c><touch.c>
 File 1,1,<.\radio_list_update.c><radio_list_update.c>
 File 1,1,<.\calibration.c><calibration.c>
+File 1,1,<.\dm9000a.c><dm9000a.c>
 File 2,1,<..\..\src\clock.c><clock.c>
 File 2,1,<..\..\src\idle.c><idle.c>
 File 2,1,<..\..\src\ipc.c><ipc.c>
@@ -382,5 +382,22 @@ Options 1,12,0  // Group 'Mass_Storage'
  ADSADEFN ()
  ADSAUDEF ()
  ADSAINCD ()
+EndOpt
+
+Options 1,1,25  // File 'codec.c'
+ PropFld { 2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+ IncBld=2
+ AlwaysBuild=2
+ GenAsm=2
+ AsmAsm=2
+ PublicsOnly=2
+ StopCode=11
+ CustArgs ()
+ LibMods ()
+ ADSCCFLG { 18,84,85,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
+ ADSCMISC ()
+ ADSCDEFN ()
+ ADSCUDEF ()
+ ADSCINCD ()
 EndOpt
 

@@ -24,7 +24,7 @@
 
 #ifdef RT_USING_LWIP
 #include <netif/ethernetif.h>
-#include "dm9000.h"
+#include "dm9000a.h"
 #endif
 
 /**

@@ -319,7 +319,7 @@ void EXTI1_IRQHandler(void)
 }
 #endif
 
-void rtgui_touch_hw_init()
+void rtgui_touch_hw_init(void)
 {
 #if (LCD_VERSION == 2)
     touch = (struct rtgui_touch_device*)rt_malloc (sizeof(struct rtgui_touch_device));
