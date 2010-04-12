@@ -201,10 +201,10 @@ void update_radio_list_req(void)
 
     update_radio_list_state = UPDATE_RAIDO_LIST_PROC;
     request.type = PLAYER_REQUEST_UPDATE_RADIO_LIST;
+    strcpy(request.fn, RADIO_LIST_UPDATE_URL);
 
     /* send to message queue */
     rt_mq_send(update_radio_mq, (void*)&request, sizeof(struct player_request));
-
 }
 
 void update_radio_thread(void* parameter)
