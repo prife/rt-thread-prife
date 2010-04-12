@@ -25,6 +25,7 @@
 #include "netbuffer.h"
 #include "lcd.h"
 #include "rtc.h"
+#include "setup.h"
 
 #ifdef RT_USING_DFS
 /* dfs init */
@@ -70,6 +71,10 @@ void rt_init_thread_entry(void *parameter)
             rt_kprintf("File System init failed!\n");
     }
 #endif
+
+    {
+        load_setup();
+    }
 
     /* RTGUI Initialization */
 #ifdef RT_USING_RTGUI

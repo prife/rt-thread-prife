@@ -190,7 +190,7 @@ void rem_start(void)
 
             printf("\r\ndecode remote codes");
             fd = open(remote_fn,O_RDONLY,0);
-            if( fd>0 )
+            if( fd >= 0 )
             {
                 printf("\r/resource/remote.txt open succeed.\r\n");
                 while( EOF_flag )
@@ -205,7 +205,7 @@ void rem_start(void)
                         {
                             unsigned int code_len = tmp;
                             p_rem_code_src[read_index].len = code_len;
-                            printf("code_len = %d\r\n",code_len);
+
                             /* 如果样本长度符合 就开始从文件读取编码数据 */
                             for(i=0; i<code_len; i++)
                             {
@@ -432,7 +432,7 @@ int rem_study(void)
     rx_count = 0;
     printf("\r\nremote studing.....");
     fd = open(remote_fn,O_WRONLY | O_TRUNC,0);
-    if( !(fd<0) )
+    if( fd >= 0 )
     {
         printf("\r\n/resource/remote.txt create succeed.");
     }

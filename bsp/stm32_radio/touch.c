@@ -2,6 +2,7 @@
 
 #include "board.h"
 #include "touch.h"
+#include "setup.h"
 
 #include <rtthread.h>
 #include <rtgui/event.h>
@@ -52,23 +53,8 @@ static void WriteDataTo7843(unsigned char num)
     SPI_WriteByte(num);
 }
 
-#ifdef _ILI_REVERSE_DIRECTION_
-/* µ¹ÆÁ */
-#define X_MIN 	1870
-#define X_MAX 	115
 #define X_WIDTH 240
-#define Y_MIN 	180
-#define Y_MAX 	1935
 #define Y_WIDTH 320
-#else
-/* ÕýÆÁ */
-#define X_MIN 	115
-#define X_MAX 	1870
-#define X_WIDTH 240
-#define Y_MIN 	1935
-#define Y_MAX 	180
-#define Y_WIDTH 320
-#endif
 
 static void rtgui_touch_calculate()
 {
@@ -296,10 +282,19 @@ static rt_err_t rtgui_touch_control (rt_device_t dev, rt_uint8_t cmd, void *args
         struct calibration_data* data;
 
         data = (struct calibration_data*) args;
+
+        //update
         touch->min_x = data->min_x;
         touch->max_x = data->max_x;
         touch->min_y = data->min_y;
         touch->max_y = data->max_y;
+
+        //save setup
+        setup.touch_min_x = touch->min_x;
+        setup.touch_max_x = touch->max_x;
+        setup.touch_min_y = touch->min_y;
+        setup.touch_max_y = touch->max_y;
+        save_setup();
     }
     break;
     }
@@ -328,10 +323,10 @@ void rtgui_touch_hw_init(void)
     /* clear device structure */
     rt_memset(&(touch->parent), 0, sizeof(struct rt_device));
     touch->calibrating = FALSE;
-    touch->min_x = X_MIN;
-    touch->max_x = X_MAX;
-    touch->min_y = Y_MIN;
-    touch->max_y = Y_MAX;
+    touch->min_x = setup.touch_min_x;
+    touch->max_x = setup.touch_max_x;
+    touch->min_y = setup.touch_min_y;
+    touch->max_y = setup.touch_max_y;
 
     /* init device structure */
     touch->parent.type = RT_Device_Class_Unknown;
