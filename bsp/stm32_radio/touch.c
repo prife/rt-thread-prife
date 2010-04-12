@@ -74,13 +74,32 @@ static void rtgui_touch_calculate()
 {
     if (touch != RT_NULL)
     {
+        unsigned int touch_hw_tmp_x[10];
+        unsigned int touch_hw_tmp_y[10];
+        unsigned int i;
+
         CS_0();
-        WriteDataTo7843(TOUCH_MSR_X | 1);                		/* 发送读X坐标命令并关闭中断 */
-        touch->x = SPI_WriteByte(0x00)<<4;                      /* 读取第一字节MSB */
-        touch->x |= ((SPI_WriteByte(TOUCH_MSR_Y | 1)>>4)&0x0F );/* 读取第二字节 同时发送读Y轴坐标命令行*/
-        touch->y = SPI_WriteByte(0x00)<<4;                      /* 读取第一字节MSB */
-        touch->y |= ((SPI_WriteByte(1<<7)>>4)&0x0F );           /* 读取第二字节并重新打开中断 */
+        for(i=0; i<10; i++)
+        {
+            WriteDataTo7843(TOUCH_MSR_X | 1);                                /* 发送读X坐标命令并关闭中断 */
+            touch_hw_tmp_x[i] = SPI_WriteByte(0x00)<<4;                      /* 读取第一字节MSB */
+            touch_hw_tmp_x[i] |= ((SPI_WriteByte(TOUCH_MSR_Y | 1)>>4)&0x0F );/* 读取第二字节 同时发送读Y轴坐标命令行*/
+            touch_hw_tmp_y[i] = SPI_WriteByte(0x00)<<4;                      /* 读取第一字节MSB */
+            touch_hw_tmp_y[i] |= ((SPI_WriteByte(1<<7)>>4)&0x0F );           /* 读取第二字节并重新打开中断 */
+        }
         CS_1();
+
+        {
+            unsigned int temp_x = 0;
+            unsigned int temp_y = 0;
+            for(i=0; i<10; i++)
+            {
+                temp_x += touch_hw_tmp_x[i];
+                temp_y += touch_hw_tmp_y[i];
+            }
+            touch->x = temp_x / 10;
+            touch->y = temp_y / 10;
+        }
 
         // rt_kprintf("touch(%d, %d)\n", touch->x, touch->y);
 
@@ -108,6 +127,7 @@ static void rtgui_touch_calculate()
     }
 }
 
+static unsigned int flag = 0;
 void touch_timeout(void* parameter)
 {
     struct rtgui_event_mouse emouse;
@@ -125,6 +145,7 @@ void touch_timeout(void* parameter)
         /* stop timer */
         rt_timer_stop(touch->poll_timer);
         rt_kprintf("touch up: (%d, %d)\n", emouse.x, emouse.y);
+        flag = 0;
 
         if ((touch->calibrating == RT_TRUE) && (touch->calibration_func != RT_NULL))
         {
@@ -134,19 +155,41 @@ void touch_timeout(void* parameter)
     }
     else
     {
-        /* send mouse event */
-        emouse.parent.type = RTGUI_EVENT_MOUSE_MOTION;
-        emouse.parent.sender = RT_NULL;
+        if(flag == 0)
+        {
+            /* calculation */
+            rtgui_touch_calculate();
 
-        /* calculation */
-        rtgui_touch_calculate();
+            /* send mouse event */
+            emouse.parent.type = RTGUI_EVENT_MOUSE_BUTTON;
+            emouse.parent.sender = RT_NULL;
 
-        emouse.x = touch->x;
-        emouse.y = touch->y;
+            emouse.x = touch->x;
+            emouse.y = touch->y;
 
-        /* init mouse button */
-        emouse.button = 0;
-        rt_kprintf("touch motion: (%d, %d)\n", emouse.x, emouse.y);
+            /* init mouse button */
+            emouse.button = (RTGUI_MOUSE_BUTTON_LEFT |RTGUI_MOUSE_BUTTON_DOWN);
+
+            rt_kprintf("touch down: (%d, %d)\n", emouse.x, emouse.y);
+            flag = 1;
+        }
+        else
+        {
+            /* send mouse event */
+            emouse.parent.type = RTGUI_EVENT_MOUSE_MOTION;
+            emouse.parent.sender = RT_NULL;
+
+            /* calculation */
+            rtgui_touch_calculate();
+
+            emouse.x = touch->x;
+            emouse.y = touch->y;
+
+            /* init mouse button */
+            emouse.button = 0;
+            rt_kprintf("touch motion: (%d, %d)\n", emouse.x, emouse.y);
+
+        }
     }
 
     /* send event to server */
@@ -266,33 +309,13 @@ static rt_err_t rtgui_touch_control (rt_device_t dev, rt_uint8_t cmd, void *args
 
 void EXTI1_IRQHandler(void)
 {
-    struct rtgui_event_mouse emouse;
-
-    /* calculation */
-    rtgui_touch_calculate();
-
-    /* send mouse event */
-    emouse.parent.type = RTGUI_EVENT_MOUSE_BUTTON;
-    emouse.parent.sender = RT_NULL;
-
-    emouse.x = touch->x;
-    emouse.y = touch->y;
-
-    /* init mouse button */
-    emouse.button = (RTGUI_MOUSE_BUTTON_LEFT |RTGUI_MOUSE_BUTTON_DOWN);
-
-    rt_kprintf("touch down: (%d, %d)\n", emouse.x, emouse.y);
-
-    /* send event to server */
-    if (touch->calibrating != RT_TRUE)
-        rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
-
     /* disable interrupt */
     EXTI_Enable(0);
-    EXTI_ClearITPendingBit(EXTI_Line1);
 
     /* start timer */
     rt_timer_start(touch->poll_timer);
+
+    EXTI_ClearITPendingBit(EXTI_Line1);
 }
 #endif
 
