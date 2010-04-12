@@ -52,8 +52,8 @@ static void load_default(void)
     setup.default_volume = 25;
     setup.lcd_brightness = 50;
 
-    setup.touch_min_x = 2088;
-    setup.touch_max_x = 2251;
+    setup.touch_min_x = 194;
+    setup.touch_max_x = 1810;
     setup.touch_min_y = 1876;
     setup.touch_max_y = 222;
 

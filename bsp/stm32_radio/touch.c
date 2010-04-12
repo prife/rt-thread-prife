@@ -67,13 +67,15 @@ static void rtgui_touch_calculate()
         CS_0();
         for(i=0; i<10; i++)
         {
-            WriteDataTo7843(TOUCH_MSR_X | 1);                                /* 发送读X坐标命令并关闭中断 */
-            touch_hw_tmp_x[i] = SPI_WriteByte(0x00)<<4;                      /* 读取第一字节MSB */
-            touch_hw_tmp_x[i] |= ((SPI_WriteByte(TOUCH_MSR_Y | 1)>>4)&0x0F );/* 读取第二字节 同时发送读Y轴坐标命令行*/
-            touch_hw_tmp_y[i] = SPI_WriteByte(0x00)<<4;                      /* 读取第一字节MSB */
-            touch_hw_tmp_y[i] |= ((SPI_WriteByte(1<<7)>>4)&0x0F );           /* 读取第二字节并重新打开中断 */
+            WriteDataTo7843(TOUCH_MSR_X);                                    /* read X */
+            touch_hw_tmp_x[i] = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
+            touch_hw_tmp_x[i] |= ((SPI_WriteByte(TOUCH_MSR_Y)>>4)&0x0F );    /* read LSB bit[7:0] */
+            touch_hw_tmp_y[i] = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
+            touch_hw_tmp_y[i] |= ((SPI_WriteByte(0x00)>>4)&0x0F );           /* read LSB bit[7:0] */
         }
+        WriteDataTo7843( 1<<7 ); /* 打开中断 */
         CS_1();
+
 
         {
             unsigned int temp_x = 0;
