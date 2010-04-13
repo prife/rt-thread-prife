@@ -1,6 +1,8 @@
 #include "stm32f10x.h"
 #include "rtthread.h"
 #include "board.h"
+#include "setup.h"
+
 #include <rtgui/rtgui.h>
 #include <rtgui/driver.h>
 #include <rtgui/rtgui_server.h>
@@ -492,7 +494,7 @@ void lcd_backlight_init(void)
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
     /* PWM1 Mode configuration: Channel4 */
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = (ARR/100)*60; /* 设置初始背光亮度 */
+    TIM_OCInitStructure.TIM_Pulse = (ARR/100)*setup.lcd_brightness; /* 设置初始背光亮度 */
     TIM_OC4Init(TIM4, &TIM_OCInitStructure);
 
     TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);

@@ -80,16 +80,23 @@ static void rtgui_touch_calculate()
         {
             unsigned int temp_x = 0;
             unsigned int temp_y = 0;
+            unsigned int max_x = 0;
+            unsigned int min_x = 0xffff;
+            unsigned int max_y = 0;
+            unsigned int min_y = 0xffff;
+
             for(i=0; i<10; i++)
             {
                 temp_x += touch_hw_tmp_x[i];
                 temp_y += touch_hw_tmp_y[i];
+                if(touch_hw_tmp_x[i] > max_x) max_x = touch_hw_tmp_x[i];
+                if(touch_hw_tmp_x[i] < min_x) min_x = touch_hw_tmp_x[i];
+                if(touch_hw_tmp_y[i] > max_y) max_y = touch_hw_tmp_y[i];
+                if(touch_hw_tmp_y[i] < min_y) min_y = touch_hw_tmp_y[i];
             }
-            touch->x = temp_x / 10;
-            touch->y = temp_y / 10;
+            touch->x = (temp_x-max_x-min_x) / 8;
+            touch->y = (temp_y-max_y-min_y) / 8;
         }
-
-        // rt_kprintf("touch(%d, %d)\n", touch->x, touch->y);
 
         /* if it's not in calibration status  */
         if (touch->calibrating != RT_TRUE)

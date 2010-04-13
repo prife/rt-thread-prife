@@ -3,6 +3,7 @@
 #include "stm32f10x.h"
 #include "board.h"
 #include "codec.h"
+#include "setup.h"
 
 #if CODEC_USE_SPI3
 
@@ -278,7 +279,7 @@ static rt_err_t codec_init(rt_device_t dev)
 	codec_send(REG_BEEP | INVROUT2);
 
 	// Set output volume.
-	vol(25);
+	vol(setup.default_volume);
 
 	return RT_EOK;
 }

@@ -23,6 +23,8 @@
 
 #define RADIO_FN    "/radio.pls"
 
+#include "board.h"
+
 const static char *time_bg_xpm[] =
 {
     "48 20 7 1",
@@ -389,6 +391,14 @@ void function_cable(void* parameter)
     USB_cable();
 }
 
+#if (LCD_VERSION==2)
+extern void calibration_init(void);
+void function_calibration(void * parameter)
+{
+    calibration_init();
+}
+#endif
+
 const struct rtgui_list_item function_list[] =
 {
     {"选择电台", RT_NULL, function_play_radio, RT_NULL},
@@ -397,6 +407,9 @@ const struct rtgui_list_item function_list[] =
     {"浏览图片", RT_NULL, function_show_picure, RT_NULL},
     {"设备信息", RT_NULL, function_device, RT_NULL},
     {"选项设置", RT_NULL, function_action, RT_NULL},
+#if (LCD_VERSION==2)
+    {"触屏校准", RT_NULL, function_calibration, RT_NULL},
+#endif
     {"USB 联机", RT_NULL, function_cable, RT_NULL},
     {"返回播放器", RT_NULL, function_player, RT_NULL},
 };
