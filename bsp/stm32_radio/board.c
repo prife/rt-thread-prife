@@ -26,6 +26,12 @@ struct rt_semaphore spi1_lock;
 
 /*@{*/
 
+static void delay(void)
+{
+    volatile unsigned int dl;
+    for(dl=0; dl<2500000; dl++);
+}
+
 /*******************************************************************************
 * Function Name  : NVIC_Configuration
 * Description    : Configures Vector Table base location.
@@ -35,14 +41,6 @@ struct rt_semaphore spi1_lock;
 *******************************************************************************/
 void NVIC_Configuration(void)
 {
-#ifdef  VECT_TAB_RAM
-    /* Set the Vector Table base location at 0x20000000 */
-    NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);
-#else  /* VECT_TAB_FLASH  */
-    /* Set the Vector Table base location at 0x08000000 */
-    NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
-#endif
-
     /*
      * set priority group:
      * 2 bits for pre-emption priority
@@ -191,6 +189,7 @@ static void all_device_reset(void)
     }
     /* FSMC GPIO configure */
 
+    delay();
     GPIO_SetBits(GPIOE,GPIO_Pin_5);   /* DM9000A          */
     GPIO_SetBits(GPIOF,GPIO_Pin_10);  /* LCD              */
     GPIO_SetBits(GPIOA,GPIO_Pin_3);   /* SPI_FLASH        */
@@ -200,7 +199,7 @@ static void all_device_reset(void)
  * This function will initial STM32 Radio board.
  */
 extern void FSMC_SRAM_Init(void);
-void rt_hw_board_init()
+void rt_hw_board_init(void)
 {
     //NAND_IDTypeDef NAND_ID;
 

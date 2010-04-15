@@ -72,9 +72,7 @@ void rt_init_thread_entry(void *parameter)
     }
 #endif
 
-    {
-        load_setup();
-    }
+    load_setup();
 
     /* RTGUI Initialization */
 #ifdef RT_USING_RTGUI
@@ -89,6 +87,14 @@ void rt_init_thread_entry(void *parameter)
         remote_init();
     }
 #endif
+
+    /* set default setup */
+    {
+        extern void vol(uint16_t v);
+        extern void brightness_set(unsigned int value);
+        vol(setup.default_volume);
+        brightness_set(setup.lcd_brightness);
+    }
 
     /* LwIP Initialization */
 #ifdef RT_USING_LWIP
