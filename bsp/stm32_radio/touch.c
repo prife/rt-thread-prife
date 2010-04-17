@@ -299,10 +299,10 @@ static rt_err_t rtgui_touch_control (rt_device_t dev, rt_uint8_t cmd, void *args
         touch->max_y = data->max_y;
 
         //save setup
-        setup.touch_min_x = touch->min_x;
-        setup.touch_max_x = touch->max_x;
-        setup.touch_min_y = touch->min_y;
-        setup.touch_max_y = touch->max_y;
+        radio_setup.touch_min_x = touch->min_x;
+        radio_setup.touch_max_x = touch->max_x;
+        radio_setup.touch_min_y = touch->min_y;
+        radio_setup.touch_max_y = touch->max_y;
         save_setup();
     }
     break;
@@ -332,10 +332,10 @@ void rtgui_touch_hw_init(void)
     /* clear device structure */
     rt_memset(&(touch->parent), 0, sizeof(struct rt_device));
     touch->calibrating = FALSE;
-    touch->min_x = setup.touch_min_x;
-    touch->max_x = setup.touch_max_x;
-    touch->min_y = setup.touch_min_y;
-    touch->max_y = setup.touch_max_y;
+    touch->min_x = radio_setup.touch_min_x;
+    touch->max_x = radio_setup.touch_max_x;
+    touch->min_y = radio_setup.touch_min_y;
+    touch->max_y = radio_setup.touch_max_y;
 
     /* init device structure */
     touch->parent.type = RT_Device_Class_Unknown;
