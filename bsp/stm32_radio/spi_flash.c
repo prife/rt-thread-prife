@@ -253,6 +253,20 @@ static rt_err_t rt_spi_flash_close(rt_device_t dev)
 
 static rt_err_t rt_spi_flash_control(rt_device_t dev, rt_uint8_t cmd, void *args)
 {
+	RT_ASSERT(dev != RT_NULL);
+
+	if (cmd == RT_DEVICE_CTRL_BLK_GETGEOME)
+	{
+		struct rt_device_blk_geometry *geometry;
+
+		geometry = (struct rt_device_blk_geometry *)args;
+		if (geometry == RT_NULL) return -RT_ERROR;
+
+		geometry->bytes_per_sector = 512;
+		geometry->sector_count = 4096;
+		geometry->block_size = 4096; /* block erase: 4k */
+	}
+
     return RT_EOK;
 }
 
