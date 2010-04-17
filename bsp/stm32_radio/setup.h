@@ -16,6 +16,6 @@ typedef struct
     unsigned short touch_max_y;
 }setup_TypeDef;
 
-extern setup_TypeDef setup;
+extern setup_TypeDef radio_setup;
 
 #endif // SETUP_H_INCLUDED

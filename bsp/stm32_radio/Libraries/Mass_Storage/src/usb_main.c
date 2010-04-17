@@ -43,7 +43,6 @@ void msc_thread_entry(void *parameter)
 }
 #endif
 
-#include <finsh.h>
 #include "sdcard.h"
 void USB_cable(void)
 {
@@ -113,4 +112,3 @@ void USB_cable(void)
     }
 #endif
 }
-FINSH_FUNCTION_EXPORT(USB_cable, cable_the_usb);

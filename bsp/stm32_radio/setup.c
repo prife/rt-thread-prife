@@ -7,7 +7,8 @@
 
 #define setup_fn    "/setup.ini"
 
-setup_TypeDef setup;
+setup_TypeDef radio_setup;
+
 static const char  kn_volume[]      = "default_volume";
 static const char  kn_brightness[]  = "lcd_brightness";
 static const char  kn_touch_min_x[] = "touch_min_x";
@@ -49,13 +50,13 @@ static rt_uint32_t read_line(int fd, char* line, rt_uint32_t line_size)
 static void load_default(void)
 {
     rt_kprintf("load_default!\r\n");
-    setup.default_volume = 25;
-    setup.lcd_brightness = 50;
+    radio_setup.default_volume = 25;
+    radio_setup.lcd_brightness = 50;
 
-    setup.touch_min_x = 194;
-    setup.touch_max_x = 1810;
-    setup.touch_min_y = 1876;
-    setup.touch_max_y = 222;
+    radio_setup.touch_min_x = 194;
+    radio_setup.touch_max_x = 1810;
+    radio_setup.touch_min_y = 1876;
+    radio_setup.touch_max_y = 222;
 
     save_setup();
 }
@@ -85,7 +86,7 @@ rt_err_t load_setup(void)
             {
                 begin = strchr(line,'=');
                 begin++;
-                setup.default_volume = atoi(begin);
+                radio_setup.default_volume = atoi(begin);
             }
 
             // lcd_brightness
@@ -100,7 +101,7 @@ rt_err_t load_setup(void)
             {
                 begin = strchr(line,'=');
                 begin++;
-                setup.lcd_brightness = atoi(begin);
+                radio_setup.lcd_brightness = atoi(begin);
             }
 
             // touch_min_x
@@ -115,7 +116,7 @@ rt_err_t load_setup(void)
             {
                 begin = strchr(line,'=');
                 begin++;
-                setup.touch_min_x = atoi(begin);
+                radio_setup.touch_min_x = atoi(begin);
             }
 
             // touch_max_x
@@ -130,7 +131,7 @@ rt_err_t load_setup(void)
             {
                 begin = strchr(line,'=');
                 begin++;
-                setup.touch_max_x = atoi(begin);
+                radio_setup.touch_max_x = atoi(begin);
             }
 
             // touch_min_y
@@ -145,7 +146,7 @@ rt_err_t load_setup(void)
             {
                 begin = strchr(line,'=');
                 begin++;
-                setup.touch_min_y = atoi(begin);
+                radio_setup.touch_min_y = atoi(begin);
             }
 
             // touch_max_y
@@ -160,7 +161,7 @@ rt_err_t load_setup(void)
             {
                 begin = strchr(line,'=');
                 begin++;
-                setup.touch_max_y = atoi(begin);
+                radio_setup.touch_max_y = atoi(begin);
             }
 
         }
@@ -200,22 +201,22 @@ rt_err_t save_setup(void)
         size = sprintf(p_str,"[config]\r\n");// [config] sprintf(p_str,"")
         p_str += size;
 
-        size = sprintf(p_str,"%s=%d\r\n",kn_volume,setup.default_volume); //default_volume
+        size = sprintf(p_str,"%s=%d\r\n",kn_volume,radio_setup.default_volume); //default_volume
         p_str += size;
 
-        size = sprintf(p_str,"%s=%d\r\n",kn_brightness,setup.lcd_brightness); //lcd_brightness
+        size = sprintf(p_str,"%s=%d\r\n",kn_brightness,radio_setup.lcd_brightness); //lcd_brightness
         p_str += size;
 
-        size = sprintf(p_str,"%s=%d\r\n",kn_touch_min_x,setup.touch_min_x); //touch_min_x
+        size = sprintf(p_str,"%s=%d\r\n",kn_touch_min_x,radio_setup.touch_min_x); //touch_min_x
         p_str += size;
 
-        size = sprintf(p_str,"%s=%d\r\n",kn_touch_max_x,setup.touch_max_x); //touch_max_x
+        size = sprintf(p_str,"%s=%d\r\n",kn_touch_max_x,radio_setup.touch_max_x); //touch_max_x
         p_str += size;
 
-        size = sprintf(p_str,"%s=%d\r\n",kn_touch_min_y,setup.touch_min_y); //touch_min_y
+        size = sprintf(p_str,"%s=%d\r\n",kn_touch_min_y,radio_setup.touch_min_y); //touch_min_y
         p_str += size;
 
-        size = sprintf(p_str,"%s=%d\r\n",kn_touch_max_y,setup.touch_max_y); //touch_max_y
+        size = sprintf(p_str,"%s=%d\r\n",kn_touch_max_y,radio_setup.touch_max_y); //touch_max_y
         p_str += size;
     }
 

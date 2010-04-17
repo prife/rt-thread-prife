@@ -92,8 +92,8 @@ void rt_init_thread_entry(void *parameter)
     {
         extern void vol(uint16_t v);
         extern void brightness_set(unsigned int value);
-        vol(setup.default_volume);
-        brightness_set(setup.lcd_brightness);
+        vol(radio_setup.default_volume);
+        brightness_set(radio_setup.lcd_brightness);
     }
 
     /* LwIP Initialization */
