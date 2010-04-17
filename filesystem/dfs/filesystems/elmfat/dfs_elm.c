@@ -41,6 +41,10 @@ static int elm_result_to_dfs(FRESULT result)
 		status = -DFS_STATUS_EROFS;
 		break;
 
+	case FR_MKFS_ABORTED:
+		status = -DFS_STATUS_EINVAL;
+		break;
+		
 	default:
 		status = -1;
 		break;
@@ -561,6 +565,38 @@ DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count)
 /* Miscellaneous Functions */
 DRESULT disk_ioctl (BYTE drv, BYTE ctrl, void *buff)
 {
+	rt_device_t device = disk[drv];
+
+	if (device == RT_NULL) return RES_ERROR;
+	
+	if (ctrl == GET_SECTOR_COUNT)
+	{
+		struct rt_device_blk_geometry geometry;
+
+		rt_memset(&geometry, 0, sizeof(geometry));
+		rt_device_control(device, RT_DEVICE_CTRL_BLK_GETGEOME, &geometry);
+
+		*(DWORD*)buff = geometry.sector_count;
+	}
+	else if (ctrl == GET_SECTOR_SIZE)
+	{
+		struct rt_device_blk_geometry geometry;
+
+		rt_memset(&geometry, 0, sizeof(geometry));
+		rt_device_control(device, RT_DEVICE_CTRL_BLK_GETGEOME, &geometry);
+
+		*(DWORD*)buff = geometry.bytes_per_sector;
+	}
+	else if (ctrl == GET_BLOCK_SIZE) /* Get erase block size in unit of sectors (DWORD) */
+	{
+		struct rt_device_blk_geometry geometry;
+
+		rt_memset(&geometry, 0, sizeof(geometry));
+		rt_device_control(device, RT_DEVICE_CTRL_BLK_GETGEOME, &geometry);
+
+		*(DWORD*)buff = geometry.block_size/geometry.bytes_per_sector;
+	}
+
 	return RES_OK;
 }
 
@@ -606,3 +642,39 @@ void ff_rel_grant(_SYNC_t m)
 }
 
 #endif
+
+/* ELM format function */
+int mkfs(const char* device)
+{
+	BYTE drv;
+	rt_device_t dev;
+	FRESULT result;
+
+	/* find device name */
+	for (drv = 0; drv < _DRIVES; drv ++)
+	{
+		dev = disk[drv];
+		if (rt_strncmp(dev->parent.name, device, RT_NAME_MAX) == 0)
+		{
+			/* Partitioning rule 0:FDISK */
+			/* Auto selection of cluster size */
+			result = f_mkfs(drv, 0, 0);
+			if ( result != FR_OK)
+			{
+				rt_kprintf("format error\n");
+				return elm_result_to_dfs(result);
+			}
+
+			return DFS_STATUS_OK;
+		}
+	}
+
+	/* can't find device driver */
+	rt_kprintf("can not find device driver: %s\n", device);
+	return -DFS_STATUS_EIO;
+}
+#ifdef RT_USING_FINSH
+#include <finsh.h>
+FINSH_FUNCTION_EXPORT(mkfs, make filesystem on disk);
+#endif
+
