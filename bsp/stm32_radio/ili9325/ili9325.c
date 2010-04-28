@@ -138,15 +138,13 @@ static void LCD_FSMCConfig(void)
     FSMC_NORSRAMTimingInitTypeDef  p;
 
     /*-- FSMC Configuration ------------------------------------------------------*/
-    /*----------------------- SRAM Bank 4 ----------------------------------------*/
-    /* FSMC_Bank1_NORSRAM4 configuration */
-    p.FSMC_AddressSetupTime = 0;
-    p.FSMC_AddressHoldTime = 0;
-    p.FSMC_DataSetupTime = 2;
-    p.FSMC_BusTurnAroundDuration = 0;
-    p.FSMC_CLKDivision = 0;
-    p.FSMC_DataLatency = 0;
-    p.FSMC_AccessMode = FSMC_AccessMode_A;
+    p.FSMC_AddressSetupTime = 1;             /* 地址建立时间  */
+    p.FSMC_AddressHoldTime = 0;              /* 地址保持时间  */
+    p.FSMC_DataSetupTime = 2;                /* 数据建立时间  */
+    p.FSMC_BusTurnAroundDuration = 0;        /* 总线返转时间  */
+    p.FSMC_CLKDivision = 0;                  /* 时钟分频      */
+    p.FSMC_DataLatency = 0;                  /* 数据保持时间  */
+    p.FSMC_AccessMode = FSMC_AccessMode_A;   /* FSMC 访问模式 */
 
     /* Color LCD configuration ------------------------------------
        LCD configured as follow:
@@ -243,6 +241,16 @@ unsigned short ili9325_ReadGRAM(unsigned short x,unsigned short y)
     return temp;
 }
 
+static void ili9320_Delay(unsigned int d)
+{
+    volatile unsigned int i;
+    for (i=50000; i>0; i--);
+}
+
+unsigned short lcd_getdeviceid(void)
+{
+    return DeviceCode;
+}
 void rt_kprintf(const char *fmt, ...);
 #define printf   rt_kprintf
 void ili9325_Initializtion(void)
@@ -253,11 +261,15 @@ void ili9325_Initializtion(void)
     DeviceCode = LCD_ReadReg(0x0000);
 
     /* DeviceCode check */
-    if( (DeviceCode != 0x9325) && (DeviceCode != 0x9328) && (DeviceCode != 0x7783) )
+    if( (DeviceCode != 0x4531) && (DeviceCode != 0x9325) && (DeviceCode != 0x9328) && (DeviceCode != 0x7783) )
     {
         printf("Invalid LCD ID:%08X\r\n",DeviceCode);
         printf("Please check you hardware and configure.");
         while(1);
+    }
+    else
+    {
+        printf("LCD Device ID : %08X ",DeviceCode);
     }
 
     if (DeviceCode==0x9325||DeviceCode==0x9328)
@@ -342,6 +354,69 @@ void ili9325_Initializtion(void)
         ili9325_WriteReg(0x0020,0x0000);
         ili9325_WriteReg(0x0021,0x0000);
     }
+	else if(DeviceCode==0x4531)
+	{
+		// Setup display
+		ili9325_WriteReg(0x00,0x0001);
+	    ili9325_WriteReg(0x10,0x0628);
+	    ili9325_WriteReg(0x12,0x0006);
+	    ili9325_WriteReg(0x13,0x0A32);
+	    ili9325_WriteReg(0x11,0x0040);
+	    ili9325_WriteReg(0x15,0x0050);
+	    ili9325_WriteReg(0x12,0x0016);
+	    ili9320_Delay(15);
+	    ili9325_WriteReg(0x10,0x5660);
+	    ili9320_Delay(15);
+	    ili9325_WriteReg(0x13,0x2A4E);
+#if defined(_ILI_REVERSE_DIRECTION_)
+	    ili9325_WriteReg(0x01,0x0100);
+#else
+	    ili9325_WriteReg(0x01,0x0000);
+#endif
+	    ili9325_WriteReg(0x02,0x0300);
+
+	    ili9325_WriteReg(0x03,0x1030);
+//	    ili9325_WriteReg(0x03,0x1038);
+
+	    ili9325_WriteReg(0x08,0x0202);
+	    ili9325_WriteReg(0x0A,0x0000);
+	    ili9325_WriteReg(0x30,0x0000);
+	    ili9325_WriteReg(0x31,0x0402);
+	    ili9325_WriteReg(0x32,0x0106);
+	    ili9325_WriteReg(0x33,0x0700);
+	    ili9325_WriteReg(0x34,0x0104);
+	    ili9325_WriteReg(0x35,0x0301);
+	    ili9325_WriteReg(0x36,0x0707);
+	    ili9325_WriteReg(0x37,0x0305);
+	    ili9325_WriteReg(0x38,0x0208);
+	    ili9325_WriteReg(0x39,0x0F0B);
+	    ili9320_Delay(15);
+	    ili9325_WriteReg(0x41,0x0002);
+
+#if defined(_ILI_REVERSE_DIRECTION_)
+        ili9325_WriteReg(0x0060,0x2700);
+#else
+        ili9325_WriteReg(0x0060,0xA700);
+#endif
+
+	    ili9325_WriteReg(0x61,0x0001);
+	    ili9325_WriteReg(0x90,0x0119);
+	    ili9325_WriteReg(0x92,0x010A);
+	    ili9325_WriteReg(0x93,0x0004);
+	    ili9325_WriteReg(0xA0,0x0100);
+//	    ili9325_WriteReg(0x07,0x0001);
+	    ili9320_Delay(15);
+//	    ili9325_WriteReg(0x07,0x0021);
+	    ili9320_Delay(15);
+//	    ili9325_WriteReg(0x07,0x0023);
+	    ili9320_Delay(15);
+//	    ili9325_WriteReg(0x07,0x0033);
+	    ili9320_Delay(15);
+	    ili9325_WriteReg(0x07,0x0133);
+	    ili9320_Delay(15);
+	    ili9325_WriteReg(0xA0,0x0000);
+	    ili9320_Delay(20);
+	}
     else if(DeviceCode==0x7783)
     {
         // Start Initial Sequence

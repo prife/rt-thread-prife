@@ -383,8 +383,12 @@ void rt_hw_lcd_draw_raw_hline(rt_uint8_t *pixels, rt_base_t x1, rt_base_t x2, rt
 
 rt_err_t rt_hw_lcd_init(void)
 {
+    unsigned short DeviceCode;
+
     lcd_backlight_init();
     ili9325_Initializtion();
+
+    DeviceCode  = lcd_getdeviceid();
 
     /* LCD GRAM TEST */
     {
@@ -407,18 +411,38 @@ rt_err_t rt_hw_lcd_init(void)
 
         /* read */
         temp=0;
-        for(test_y=0; test_y<320; test_y++)
+
+        if (DeviceCode==0x9325||DeviceCode==0x9328)
         {
-            for(test_x=0; test_x<240; test_x++)
+            for(test_y=0; test_y<320; test_y++)
             {
-                if( ili9325_BGR2RGB( ili9325_ReadGRAM(test_x,test_y) ) != temp++)
+                for(test_x=0; test_x<240; test_x++)
                 {
+                    if( ili9325_BGR2RGB( ili9325_ReadGRAM(test_x,test_y) ) != temp++)
+                    {
                     rt_kprintf("  LCD GRAM ERR!!");
                     while(1);
+                    }
                 }
             }
+            rt_kprintf("  TEST PASS!\r\n");
         }
-        rt_kprintf("  TEST PASS!\r\n");
+        else if( DeviceCode==0x4531 )
+        {
+            for(test_y=0; test_y<320; test_y++)
+            {
+                for(test_x=0; test_x<240; test_x++)
+                {
+                    if(  ili9325_ReadGRAM(test_x,test_y) != temp++)
+                    {
+                    rt_kprintf("  LCD GRAM ERR!!");
+                    while(1);
+                    }
+                }
+            }
+            rt_kprintf("  TEST PASS!\r\n");
+        }
+
     }/* LCD GRAM TEST */
 
 #ifndef DRIVER_TEST

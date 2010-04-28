@@ -60,13 +60,13 @@ static void FSMC_Init(void)
 //#endif
 
     /*-- FSMC Configuration ------------------------------------------------------*/
-    p.FSMC_AddressSetupTime = 2; // safe value 2
-    p.FSMC_AddressHoldTime = 1;  // safe value 2
-    p.FSMC_DataSetupTime = 3;    // safe value 5
-    p.FSMC_BusTurnAroundDuration = 0;
-    p.FSMC_CLKDivision = 0;
-    p.FSMC_DataLatency = 0;
-    p.FSMC_AccessMode = FSMC_AccessMode_A;
+    p.FSMC_AddressSetupTime = 2;             /* 地址建立时间  */
+    p.FSMC_AddressHoldTime = 1;              /* 地址保持时间  */
+    p.FSMC_DataSetupTime = 3;                /* 数据建立时间  */
+    p.FSMC_BusTurnAroundDuration = 0;        /* 总线返转时间  */
+    p.FSMC_CLKDivision = 0;                  /* 时钟分频      */
+    p.FSMC_DataLatency = 0;                  /* 数据保持时间  */
+    p.FSMC_AccessMode = FSMC_AccessMode_A;   /* FSMC 访问模式 */
 
     FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM2;
     FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;

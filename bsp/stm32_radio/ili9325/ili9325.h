@@ -1,6 +1,7 @@
 #ifndef ILI9325_H_INCLUDED
 #define ILI9325_H_INCLUDED
 
+extern unsigned short lcd_getdeviceid(void);
 extern void ili9325_Initializtion(void);
 extern void ili9325_SetCursor(u16 x,u16 y);
 extern void ili9325_Clear(u16 Color);
