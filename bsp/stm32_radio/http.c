@@ -281,7 +281,7 @@ static int http_connect(struct http_session* session,
 	return peer_handle;
 }
 
-struct http_session* http_session_open(char* url)
+struct http_session* http_session_open(const char* url)
 {
 	int peer_handle = 0;
 	struct sockaddr_in server;
@@ -505,7 +505,7 @@ static int shoutcast_connect(struct shoutcast_session* session,
 rt_uint32_t total = 0;
 FINSH_VAR_EXPORT(total, finsh_type_uint, total read in net);
 	
-struct shoutcast_session* shoutcast_session_open(char* url)
+struct shoutcast_session* shoutcast_session_open(const char* url)
 {
 	int peer_handle = 0;
 	struct sockaddr_in server;

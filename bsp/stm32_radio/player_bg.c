@@ -24,6 +24,17 @@ void player_play_req(const char* fn)
     rt_mq_send(player_thread_mq, (void*)&request, sizeof(struct player_request));
 }
 
+void player_radio_req(const char* fn, const char* station)
+{
+    struct player_request request;
+    request.type = PLAYER_REQUEST_PLAY_SINGLE_FILE;
+    strncpy(request.fn, fn, sizeof(request.fn));
+    strncpy(request.station, station, sizeof(request.station));
+
+    /* send to message queue */
+    rt_mq_send(player_thread_mq, (void*)&request, sizeof(struct player_request));
+}
+
 void player_stop_req()
 {
 	is_playing = RT_FALSE;
@@ -70,7 +81,7 @@ void player_thread(void* parameter)
 				{
 					is_playing = RT_TRUE;
 					player_notify_play();
-					ice_mp3(request.fn);
+					ice_mp3(request.fn, request.station);
 					/* notfiy net buffer worker to stop */
 					net_buf_stop_job();
 					player_notify_stop();

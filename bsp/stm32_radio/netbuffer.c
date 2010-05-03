@@ -202,6 +202,12 @@ void net_buf_stop_job()
 	rt_hw_interrupt_enable(level);
 }
 
+/* get buffer usage percent */
+int net_buf_get_usage(void)
+{
+	return _netbuf.data_length;
+}
+
 static void net_buf_do_stop(struct net_buffer_job* job)
 {
 	/* source closed */
@@ -303,7 +309,7 @@ static void net_buf_do_job(struct net_buffer_job* job)
 		// rt_kprintf("buffering ... %d %c\n", (data_length * 100) / _netbuf.size, '%');
 
 		/* set buffer position */
-		player_set_position(data_length);
+		// player_set_position(data_length);
 
 		if ((_netbuf.stat == NETBUF_STAT_BUFFERING) 
 			&& (data_length >= _netbuf.ready_wm) 

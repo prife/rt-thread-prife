@@ -44,6 +44,8 @@ void player_ui_freeze(void);
 /* notification function, which invoked by player background thread */
 void player_notify_play(void);
 void player_notify_stop(void);
+/* notify tag or status informatio is updated */
+void player_notify_info(const char* information);
 
 /* set player information */
 void player_set_position(rt_uint32_t position);

@@ -586,7 +586,7 @@ rt_size_t ice_data_fetch(void* parameter, rt_uint8_t *buffer, rt_size_t length)
 	return net_buf_read(buffer, length);
 }
 
-void ice_mp3(char* url)
+void ice_mp3(const char* url, const char* station)
 {
     struct shoutcast_session* session;
 	struct mp3_decoder* decoder;
@@ -594,9 +594,12 @@ void ice_mp3(char* url)
 
 	is_playing = RT_TRUE;
 
+	player_notify_info("连接电台...");
 	session = shoutcast_session_open(url);
 	if (session != RT_NULL)
 	{
+		player_set_title(station);
+		player_notify_info("连接成功，缓冲中...");
 		/* start a job to netbuf worker */
 		if (net_buf_start_job(ice_fetch, ice_close, (void*)session) == 0)
 		{

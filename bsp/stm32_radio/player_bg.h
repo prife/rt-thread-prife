@@ -10,12 +10,14 @@ enum PLAYER_REQUEST_TYPE
 	PLAYER_REQUEST_STOP,
 	PLAYER_REQUEST_FREEZE,
 	PLAYER_REQUEST_UPDATE_RADIO_LIST,
+	PLAYER_REQUEST_UPDATE_INFO,
 };
 
 struct player_request
 {
 	enum PLAYER_REQUEST_TYPE type;
 	char fn[64];
+	char station[32];
 };
 
 /* get player background status */
@@ -27,6 +29,8 @@ void player_init(void);
 void player_stop_req(void);
 /* send a play request to player background thread */
 void player_play_req(const char* fn);
+/* send a play radio request to player background thread */
+void player_radio_req(const char* fn, const char* station);
 
 #endif
 

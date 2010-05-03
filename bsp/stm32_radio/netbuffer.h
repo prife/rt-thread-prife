@@ -19,6 +19,7 @@ int net_buf_start_job(rt_size_t (*fetch)(rt_uint8_t* ptr, rt_size_t len, void* p
 	void (*close)(void* parameter),
 	void* parameter);
 void net_buf_stop_job(void);
+int net_buf_get_usage(void);
 
 #endif
 

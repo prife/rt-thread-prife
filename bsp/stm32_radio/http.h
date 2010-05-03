@@ -26,12 +26,12 @@ struct shoutcast_session
 	rt_size_t current_meta_chunk;
 };
 
-struct http_session* http_session_open(char* url);
+struct http_session* http_session_open(const char* url);
 rt_size_t http_session_read(struct http_session* session, rt_uint8_t *buffer, rt_size_t length);
 rt_off_t http_session_seek(struct http_session* session, rt_off_t offset, int mode);
 int http_session_close(struct http_session* session);
 
-struct shoutcast_session* shoutcast_session_open(char* url);
+struct shoutcast_session* shoutcast_session_open(const char* url);
 rt_size_t shoutcast_session_read(struct shoutcast_session* session, rt_uint8_t *buffer, rt_size_t length);
 rt_off_t shoutcast_session_seek(struct shoutcast_session* session, rt_off_t offset, int mode);
 int shoutcast_session_close(struct shoutcast_session* session);
