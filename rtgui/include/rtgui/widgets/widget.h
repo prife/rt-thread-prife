@@ -60,19 +60,6 @@ extern "C" {
 /** Check if the object is a rtgui_widget */
 #define RTGUI_IS_WIDGET(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_WIDGET_TYPE))
 
-struct rtgui_gc
-{
-	/* foreground and background color */
-	rtgui_color_t foreground, background;
-
-	/* text align */
-	rt_base_t textalign;
-
-	/* font */
-	rtgui_font_t* font;
-};
-typedef struct rtgui_gc rtgui_gc_t;
-
 /*
  * the base widget object
  */
@@ -103,9 +90,6 @@ struct rtgui_widget
 
 	/* the rect clip */
 	rtgui_region_t clip;
-#ifndef RTGUI_USING_SMALL_SIZE
-	rt_uint32_t clip_sync;
-#endif
 
 	/* the event handler */
 	rt_bool_t (*event_handler)	(struct rtgui_widget* widget, struct rtgui_event* event);

@@ -118,8 +118,8 @@ static void player_update_tag_info(struct rtgui_dc* dc)
     rtgui_color_t saved;
     rtgui_image_t *background;
 
-    saved = rtgui_dc_get_color(dc);
-    rtgui_dc_set_color(dc, black);
+    saved = RTGUI_DC_FC(dc);
+    RTGUI_DC_FC(dc) = black;
 
     rect.x1 = 0;
     rect.y1 = 0;
@@ -173,7 +173,7 @@ static void player_update_tag_info(struct rtgui_dc* dc)
         rtgui_dc_draw_text(dc, line, &rect);
     }
 
-    rtgui_dc_set_color(dc, saved);
+    RTGUI_DC_FC(dc) = saved;
 }
 
 static rt_uint32_t read_line(int fd, char* line, rt_uint32_t line_size)
@@ -594,7 +594,7 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
         }
 
         /* draw playing information */
-        rtgui_dc_set_color(dc, black);
+        RTGUI_DC_FC(dc) = black;
         {
             char line[32];
 

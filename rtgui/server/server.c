@@ -225,6 +225,7 @@ void rtgui_server_handle_mouse_btn(struct rtgui_event_mouse* event)
 	/* re-init to server thread */
 	RTGUI_EVENT_MOUSE_BUTTON_INIT(event);
 
+#ifdef RTGUI_USING_WINMOVE
 	if (rtgui_winrect_is_moved() &&
 		event->button & (RTGUI_MOUSE_BUTTON_LEFT | RTGUI_MOUSE_BUTTON_UP))
 	{
@@ -259,6 +260,7 @@ void rtgui_server_handle_mouse_btn(struct rtgui_event_mouse* event)
 			return;
 		}
 	}
+#endif
 
 	/* get the wnd which contains the mouse */
 	wnd = rtgui_topwin_get_wnd(event->x, event->y);
@@ -456,12 +458,18 @@ void rtgui_server_handle_kbd(struct rtgui_event_kbd* event)
 	panel = rtgui_server_focus_panel;
 	if (panel != RT_NULL)
 	{
-		/* send to focus panel */
-		event->wid = RT_NULL;
+		rt_thread_t tid;
 
-		/* send keyboard event to thread */
-		rtgui_thread_send(rtgui_panel_get_active_thread(panel),
-			(struct rtgui_event*)event, sizeof(struct rtgui_event_kbd));
+		/* get active thread in this panel */
+		tid = rtgui_panel_get_active_thread(panel);
+		if (tid != RT_NULL)
+		{
+			/* send to focus panel */
+			event->wid = RT_NULL;
+
+			/* send keyboard event to thread */
+			rtgui_thread_send(tid, (struct rtgui_event*)event, sizeof(struct rtgui_event_kbd));
+		}
 	}
 }
 
