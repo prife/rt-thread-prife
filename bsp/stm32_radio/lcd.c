@@ -12,7 +12,7 @@
 #endif
 
 #if (LCD_VERSION == 2)
-#include "ili9325/ili9325.h"
+#include "ili_lcd_general.h"
 #endif
 
 void lcd_backlight_init(void);
@@ -289,161 +289,12 @@ FINSH_FUNCTION_EXPORT(cls, clear screen);
 #endif
 
 #if (LCD_VERSION == 2)
-void rt_hw_lcd_update(rtgui_rect_t *rect)
-{
-    /* nothing for none-DMA mode driver */
-}
-
-rt_uint8_t * rt_hw_lcd_get_framebuffer(void)
-{
-    return RT_NULL; /* no framebuffer driver */
-}
-
-/*  设置像素点 颜色,X,Y */
-void rt_hw_lcd_set_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y)
-{
-    unsigned short p;
-
-    /* get color pixel */
-    p = rtgui_color_to_565p(*c);
-    ili9325_SetCursor(x,y);
-
-    ili9325_WriteRAM_Prepare();
-    ili9325_RAM = p ;
-}
-
-/* 获取像素点颜色 */
-void rt_hw_lcd_get_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y)
-{
-    unsigned short p;
-    p = ili9325_BGR2RGB( ili9325_ReadGRAM(x,y) );
-    *c = rtgui_color_from_565p(p);
-}
-
-/* 画水平线 */
-void rt_hw_lcd_draw_hline(rtgui_color_t *c, rt_base_t x1, rt_base_t x2, rt_base_t y)
-{
-    unsigned short p;
-
-    /* get color pixel */
-    p = rtgui_color_to_565p(*c);
-
-    /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
-    ili9325_WriteReg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
-
-    ili9325_SetCursor(x1, y);
-    ili9325_WriteRAM_Prepare(); /* Prepare to write GRAM */
-    while (x1 < x2)
-    {
-        ili9325_RAM = p ;
-        x1++;
-    }
-}
-
-/* 垂直线 */
-void rt_hw_lcd_draw_vline(rtgui_color_t *c, rt_base_t x, rt_base_t y1, rt_base_t y2)
-{
-    unsigned short p;
-
-    /* get color pixel */
-    p = rtgui_color_to_565p(*c);
-
-    /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
-    ili9325_WriteReg(0x0003,(1<<12)|(1<<5)|(0<<4) | (1<<3) );
-
-    ili9325_SetCursor(x, y1);
-    ili9325_WriteRAM_Prepare(); /* Prepare to write GRAM */
-    while (y1 < y2)
-    {
-        ili9325_RAM = p ;
-        y1++;
-    }
-}
-
-/* ?? */
-void rt_hw_lcd_draw_raw_hline(rt_uint8_t *pixels, rt_base_t x1, rt_base_t x2, rt_base_t y)
-{
-    rt_uint16_t *ptr;
-
-    /* get pixel */
-    ptr = (rt_uint16_t*) pixels;
-
-    /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
-    ili9325_WriteReg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
-
-    ili9325_SetCursor(x1, y);
-    ili9325_WriteRAM_Prepare(); /* Prepare to write GRAM */
-    while (x1 < x2)
-    {
-        ili9325_RAM = *ptr ;
-        x1 ++;
-        ptr ++;
-    }
-}
+#include <finsh.h>
 
 rt_err_t rt_hw_lcd_init(void)
 {
-    unsigned short DeviceCode;
-
     lcd_backlight_init();
-    ili9325_Initializtion();
-
-    DeviceCode  = lcd_getdeviceid();
-
-    /* LCD GRAM TEST */
-    {
-        unsigned short temp;
-        unsigned int test_x;
-        unsigned int test_y;
-
-        rt_kprintf("\r\nLCD GRAM test....");
-
-        /* write */
-        temp=0;
-        /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
-        ili9325_WriteReg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
-        ili9325_SetCursor(0,0);
-        ili9325_WriteRAM_Prepare();
-        for(test_y=0; test_y<76800; test_y++)
-        {
-            ili9325_RAM = temp++ ;
-        }
-
-        /* read */
-        temp=0;
-
-        if (DeviceCode==0x9325||DeviceCode==0x9328)
-        {
-            for(test_y=0; test_y<320; test_y++)
-            {
-                for(test_x=0; test_x<240; test_x++)
-                {
-                    if( ili9325_BGR2RGB( ili9325_ReadGRAM(test_x,test_y) ) != temp++)
-                    {
-                    rt_kprintf("  LCD GRAM ERR!!");
-                    while(1);
-                    }
-                }
-            }
-            rt_kprintf("  TEST PASS!\r\n");
-        }
-        else if( DeviceCode==0x4531 )
-        {
-            for(test_y=0; test_y<320; test_y++)
-            {
-                for(test_x=0; test_x<240; test_x++)
-                {
-                    if(  ili9325_ReadGRAM(test_x,test_y) != temp++)
-                    {
-                    rt_kprintf("  LCD GRAM ERR!!");
-                    while(1);
-                    }
-                }
-            }
-            rt_kprintf("  TEST PASS!\r\n");
-        }
-
-    }/* LCD GRAM TEST */
+    lcd_Initializtion();
 
 #ifndef DRIVER_TEST
     /* add lcd driver into graphic driver */
@@ -452,26 +303,6 @@ rt_err_t rt_hw_lcd_init(void)
 
     return RT_EOK;
 }
-
-#include <finsh.h>
-
-void hline(rt_base_t x1, rt_base_t x2, rt_base_t y, rt_uint32_t pixel)
-{
-    rt_hw_lcd_draw_hline(&pixel, x1, x2, y);
-}
-FINSH_FUNCTION_EXPORT(hline, draw a hline);
-
-void vline(int x, int y1, int y2, rt_uint32_t pixel)
-{
-    rt_hw_lcd_draw_vline(&pixel, x, y1, y2);
-}
-FINSH_FUNCTION_EXPORT(vline, draw a vline);
-
-void cls()
-{
-    ili9325_Clear(0x051F);
-}
-FINSH_FUNCTION_EXPORT(cls, clear screen);
 #endif
 
 #if LCD_USE_PWM
