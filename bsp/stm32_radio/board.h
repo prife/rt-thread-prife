@@ -43,14 +43,14 @@
 #define STM32_CONSOLE_USART     1
 
 // <o> LCD Module Version
-// <1=>Version 1:fmt0371
-// <2=>Version 2:ili9320/9325
+// <1=>Version 1: fmt0371
+// <2=>Version 2: i8080/16bit ili9320/9325/9328 LG4531 ST7783
 // 	<i>Default: 1
 #define LCD_VERSION             2
 
 // <o> LCD Module brightness use PWM: <0=>NO <1=>YES
 // 	<i>Default: 1
-#define LCD_USE_PWM             0
+#define LCD_USE_PWM             1
 
 /*
  * IMPORTANT NOTICE:
@@ -64,7 +64,7 @@
 // <o> CODEC SPI Port
 // <0=>SPI2
 // <1=>SPI3
-#define CODEC_USE_SPI3		0
+#define CODEC_USE_SPI3		1
 
 void rt_hw_board_led_on(int n);
 void rt_hw_board_led_off(int n);

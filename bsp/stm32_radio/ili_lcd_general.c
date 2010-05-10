@@ -22,6 +22,7 @@ void rt_kprintf(const char *fmt, ...);
 
 /********* control ***********/
 #include "stm32f10x.h"
+#include "board.h"
 
 /* LCD is connected to the FSMC_Bank1_NOR/SRAM2 and NE2 is used as ship select signal */
 /* RS <==> A2 */
@@ -446,7 +447,7 @@ void lcd_Initializtion(void)
     lcd_clear( Blue );
 }
 
-#if defined(use_rt_gui)
+#if defined(use_rt_gui) && (LCD_VERSION == 2)
 void rt_hw_lcd_update(rtgui_rect_t *rect)
 {
     /* nothing for none-DMA mode driver */

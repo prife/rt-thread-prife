@@ -83,7 +83,7 @@ static void all_device_reset(void)
     /* TOUCH            PC4  */
 
     GPIO_InitTypeDef GPIO_InitStructure;
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOE
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOE
                            | RCC_APB2Periph_GPIOF | RCC_APB2Periph_GPIOG,ENABLE);
 
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
@@ -115,6 +115,17 @@ static void all_device_reset(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
     GPIO_Init(GPIOF,&GPIO_InitStructure);
     GPIO_ResetBits(GPIOF,GPIO_Pin_10);
+
+    /* LCD brightness */
+#if !LCD_USE_PWM
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_Init(GPIOF,&GPIO_InitStructure);
+    GPIO_ResetBits(GPIOF,GPIO_Pin_9); /* LCD brightness power off */
+#else
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_Init(GPIOB,&GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB,GPIO_Pin_9); /* LCD brightness power off */
+#endif
 
     /* SPI_FLASH RESET */
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
