@@ -35,6 +35,7 @@ enum PLAYER_STEP
 	PLAYER_STEP_STOP,
 	PLAYER_STEP_PREV,
 	PLAYER_STEP_NEXT,
+	PLAYER_STEP_SEEK,
 };
 
 /* init player ui */
@@ -46,6 +47,8 @@ void player_notify_play(void);
 void player_notify_stop(void);
 /* notify tag or status informatio is updated */
 void player_notify_info(const char* information);
+/* request player to show function view */
+void player_notfiy_functionview(void);
 
 /* set player information */
 void player_set_position(rt_uint32_t position);

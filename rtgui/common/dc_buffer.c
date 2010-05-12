@@ -304,20 +304,19 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc* self, struct rtgui_point* dc_p
 		{
 			/* blit on line buffer */
 			blit_line(pixel, line_ptr, rect_width);
-				pixel += dc->width;
+			pixel += dc->width;
 
 			/* draw on hardware dc */
 			rtgui_dc_hw_draw_raw_hline(hw, line_ptr, rect->x1, rect->x1 + rect_width, index);
-}
+		}
 
 		/* release line buffer */
 		rtgui_free(line_ptr);
-}
+	}
 }
 
 
 static void rtgui_dc_buffer_set_gc(struct rtgui_dc* self, rtgui_gc_t *gc)
-
 {
 	struct rtgui_dc_buffer* dc = (struct rtgui_dc_buffer*)self;
 

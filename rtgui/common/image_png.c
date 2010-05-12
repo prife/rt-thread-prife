@@ -297,8 +297,8 @@ static void rtgui_image_png_blit(struct rtgui_image* image, struct rtgui_dc* dc,
 
                     rtgui_dc_draw_color_point(dc, x + rect->x1, y + rect->y1,
 						RTGUI_ARGB(0, png->info_ptr->palette[data[0]].red,
-                        png->info_ptr->palette[data[0]].green,
-                        png->info_ptr->palette[data[0]].blue));
+						png->info_ptr->palette[data[0]].green,
+						png->info_ptr->palette[data[0]].blue));
                 }
             }
 

@@ -148,6 +148,7 @@ int radio_list_update_servicer_session_open(char* url)
     return peer_handle;
 
 }
+
 int update_radio_list(char* url)
 {
     char *buf = NULL;
@@ -211,46 +212,38 @@ void update_radio_thread(void* parameter)
 {
     rt_err_t result;
     struct player_request request;
-    rt_thread_t update_radio_list_thread;
 
-
-    while(1)
+    /* get request from message queue */
+    result = rt_mq_recv(update_radio_mq, (void*)&request,
+                        sizeof(struct player_request), RT_WAITING_FOREVER);
+    if (result == RT_EOK)
     {
-        /* get request from message queue */
-        result = rt_mq_recv(update_radio_mq, (void*)&request,
-                            sizeof(struct player_request), RT_WAITING_FOREVER);
-        if (result == RT_EOK)
+        switch (request.type)
         {
-            switch (request.type)
+        case PLAYER_REQUEST_UPDATE_RADIO_LIST:
+            if ((strstr(request.fn, "http://") == request.fn ||
+                    (strstr(request.fn, "HTTP://") == request.fn )))
             {
+                struct rtgui_event_command ecmd;
 
-            case PLAYER_REQUEST_UPDATE_RADIO_LIST:
-                if ((strstr(request.fn, "http://") == request.fn ||
-                        (strstr(request.fn, "HTTP://") == request.fn )))
+                if(update_radio_list(request.fn)==0)
                 {
-                    struct rtgui_event_command ecmd;
-
-                    if(update_radio_list(request.fn)==0)
-                    {
-                        update_radio_list_state = 	UPDATE_RADIO_LIST_SUCCEED;
-                    }
-                    else
-                    {
-                        update_radio_list_state = 	UPDATE_RADIO_LIST_CONNECT_FAILED;
-                    }
-                    RTGUI_EVENT_COMMAND_INIT(&ecmd);
-                    ecmd.type = RTGUI_EVENT_PAINT;
-                    ecmd.command_id = PLAYER_REQUEST_UPDATE_RADIO_LIST;
-                    rtgui_thread_send(rt_thread_find("ply_ui"), &ecmd.parent, sizeof(ecmd));
+                    update_radio_list_state = 	UPDATE_RADIO_LIST_SUCCEED;
                 }
-                break;
+                else
+                {
+                    update_radio_list_state = 	UPDATE_RADIO_LIST_CONNECT_FAILED;
+                }
+                RTGUI_EVENT_COMMAND_INIT(&ecmd);
+                ecmd.type = RTGUI_EVENT_PAINT;
+                ecmd.command_id = PLAYER_REQUEST_UPDATE_RADIO_LIST;
+                rtgui_thread_send(rt_thread_find("ply_ui"), &ecmd.parent, sizeof(ecmd));
             }
+            break;
         }
-        rt_mq_delete(update_radio_mq);
-        update_radio_mq = RT_NULL;
-        update_radio_list_thread = rt_thread_self();
-        rt_thread_delete(update_radio_list_thread);
     }
+    rt_mq_delete(update_radio_mq);
+    update_radio_mq = RT_NULL;
 }
 
 void drawing_update_state_info(struct rtgui_widget* widget)
@@ -363,4 +356,32 @@ rtgui_view_t *update_radio_list_view_create(rtgui_workbench_t* workbench)
     return update_radio_list_view;
 }
 
+void update_radio_list_view_init(rtgui_workbench_t* workbench)
+{
+    rtgui_view_t *view;
+    rt_thread_t update_radio_list_thread;
+
+    if(update_radio_mq == RT_NULL)
+    {
+        update_radio_mq = rt_mq_create("updateRadioList", sizeof(struct player_request),
+                                       1, RT_IPC_FLAG_FIFO);
+        RT_ASSERT(update_radio_mq != RT_NULL);
+
+        update_radio_list_thread = rt_thread_create("update_bg", update_radio_thread, RT_NULL,
+                                   1024 ,20, 5);
+
+        if (update_radio_list_thread == RT_NULL) rt_kprintf("updateRadioList thread init failed\n");
+        else
+        {
+            rt_thread_startup(update_radio_list_thread);
+            update_radio_list_req();
+        }
+    }
+
+    view = update_radio_list_view_create(workbench);
+    if (view != RT_NULL)
+    {
+        rtgui_view_show(view, RT_FALSE);
+    }
+}
 

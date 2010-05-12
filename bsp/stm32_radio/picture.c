@@ -7,7 +7,7 @@
 #include <dfs_posix.h>
 #include <string.h>
 
-#define PICTURE_DIR "/pictures"
+#define PICTURE_DIR "/SD"
 
 enum picture_view_mode
 {

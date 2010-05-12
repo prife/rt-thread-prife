@@ -215,6 +215,7 @@ File 11,1,<..\..\rtgui\common\hz16font.c><hz16font.c>
 File 11,1,<..\..\rtgui\common\hz12font.c><hz12font.c>
 File 11,1,<..\..\rtgui\widgets\list_view.c><list_view.c>
 File 11,1,<..\..\rtgui\widgets\filelist_view.c><filelist_view.c>
+File 11,1,<..\..\rtgui\widgets\listbox.c><listbox.c>
 File 12,1,<.\Libraries\Mass_Storage\src\hw_config.c><hw_config.c>
 File 12,1,<.\Libraries\Mass_Storage\src\mass_mal.c><mass_mal.c>
 File 12,1,<.\Libraries\Mass_Storage\src\memory.c><memory.c>

@@ -208,11 +208,23 @@ rt_bool_t rtgui_list_view_event_handler(struct rtgui_widget* widget, struct rtgu
 
 					/* set selected item */
 					view->current_item = (view->current_item/view->page_items) * view->page_items + index;
-					rtgui_list_view_update_current(view, old_item);
+					if (emouse->button & RTGUI_MOUSE_BUTTON_DOWN)
+					{
+						/* down event */
+						rtgui_list_view_update_current(view, old_item);
+					}
+					else
+					{
+						/* up event */
+						if (view->items[view->current_item].action != RT_NULL)
+						{
+							view->items[view->current_item].action(view->items[view->current_item].parameter);
+						}
+					}
 				}
 			}
 		}
-		break;
+		return RT_FALSE;
 
     case RTGUI_EVENT_KBD:
         {

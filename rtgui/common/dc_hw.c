@@ -430,7 +430,7 @@ void rtgui_dc_hw_draw_raw_hline(struct rtgui_dc_hw* dc, rt_uint8_t* raw_ptr, int
 	y  = y + dc->owner->extent.y1;
 
 	if (dc->owner->clip.data == RT_NULL)
-{
+	{
 		rtgui_rect_t* prect;
 
 		prect = &(dc->owner->clip.extents);
@@ -446,7 +446,7 @@ void rtgui_dc_hw_draw_raw_hline(struct rtgui_dc_hw* dc, rt_uint8_t* raw_ptr, int
 		dc->device->draw_raw_hline(raw_ptr, x1, x2, y);
 	}
 	else for (index = 0; index < rtgui_region_num_rects(&(dc->owner->clip)); index ++)
-{
+	{
 		rtgui_rect_t* prect;
 		register rt_base_t draw_x1, draw_x2;
 
