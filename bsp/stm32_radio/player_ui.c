@@ -20,6 +20,8 @@
 #include "station_list.h"
 #include "netbuffer.h"
 #include "utils.h"
+#include "setup.h"
+#include "codec.h"
 
 #include "play.hdh"
 #include "stop.hdh"
@@ -628,7 +630,24 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
         {
         	if ((ekbd->key == RTGUIK_LEFT) || (ekbd->key == RTGUIK_RIGHT))
         	{
-                rtgui_view_show(RTGUI_VIEW(function_view), RT_FALSE);
+        		if (player_mode == PLAYER_STOP)
+        		{
+                    rtgui_view_show(RTGUI_VIEW(function_view), RT_FALSE);
+        		}
+        		else
+        		{
+        			rt_device_t dev = rt_device_find("snd");
+        			if (ekbd->key == RTGUIK_LEFT && radio_setup.default_volume > 0)
+        			{
+        				radio_setup.default_volume--;
+        				rt_device_control(dev, CODEC_CMD_VOLUME, &radio_setup.default_volume);
+        			}
+        			else if (ekbd->key == RTGUIK_RIGHT && radio_setup.default_volume < CODEC_VOLUME_MAX)
+        			{
+        				radio_setup.default_volume++;
+        				rt_device_control(dev, CODEC_CMD_VOLUME, &radio_setup.default_volume);
+        			}
+        		}
         	}
 			else
 			{
