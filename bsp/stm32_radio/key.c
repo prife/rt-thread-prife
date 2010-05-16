@@ -53,7 +53,7 @@ static void key_thread_entry(void *parameter)
 
     while (1)
     {
-        next_delay = 10;
+        next_delay = RT_TICK_PER_SECOND/10;
         kbd_event.key = RTGUIK_UNKNOWN;
         kbd_event.type = RTGUI_KEYDOWN;
 
@@ -102,7 +102,7 @@ static void key_thread_entry(void *parameter)
             /* post down event */
             rtgui_server_post_event(&(kbd_event.parent), sizeof(kbd_event));
 
-            next_delay = 10;
+            next_delay = RT_TICK_PER_SECOND/10;
             /* delay to post up event */
             rt_thread_delay(next_delay);
 

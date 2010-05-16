@@ -519,6 +519,14 @@ void function_calibration(void * parameter)
 }
 #endif
 
+#ifdef RT_USING_RTI
+void function_rti(void* parameter)
+{
+	extern void rti_stub_init(rt_size_t mem_size);
+	rti_stub_init(32 * 1024);
+}
+#endif
+
 const struct rtgui_list_item function_list[] =
 {
     {"返回播放器", RT_NULL, function_player, RT_NULL},
@@ -532,6 +540,9 @@ const struct rtgui_list_item function_list[] =
     {"触屏校准", RT_NULL, function_calibration, RT_NULL},
 #endif
     {"USB 联机", RT_NULL, function_cable, RT_NULL},
+#ifdef RT_USING_RTI
+	{"打开调试", RT_NULL, function_rti, RT_NULL},
+#endif
 };
 
 void player_set_position(rt_uint32_t position)
@@ -820,7 +831,8 @@ static void player_entry(void* parameter)
     rtgui_widget_get_rect(RTGUI_WIDGET(workbench), &rect);
     function_view = rtgui_list_view_create(function_list,
                                            sizeof(function_list)/sizeof(struct rtgui_list_item),
-                                           &rect);
+                                           &rect,
+										   RTGUI_LIST_VIEW_LIST);
     rtgui_workbench_add_view(workbench, RTGUI_VIEW(function_view));
 
     rtgui_workbench_event_loop(workbench);

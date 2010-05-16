@@ -187,7 +187,7 @@ struct station_item* station_list_select(struct station_list* list, struct rtgui
 
 	/* create view */
 	rtgui_widget_get_rect(RTGUI_WIDGET(workbench), &rect);
-	view = rtgui_list_view_create(items, list->count + 1, &rect);
+	view = rtgui_list_view_create(items, list->count + 1, &rect, RTGUI_LIST_VIEW_LIST);
 
 	items[0].image = RT_NULL;
 	items[0].action = station_list_selected;
