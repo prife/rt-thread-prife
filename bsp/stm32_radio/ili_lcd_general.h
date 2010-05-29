@@ -20,8 +20,8 @@
 #define Yellow           0xFFE0
 
 /*---------------------- Graphic LCD size definitions ------------------------*/
-#define LCD_WIDTH       320                 /* Screen Width (in pixels)           */
-#define LCD_HEIGHT      240                 /* Screen Hight (in pixels)           */
+#define LCD_WIDTH       240                 /* Screen Width (in pixels)           */
+#define LCD_HEIGHT      320                 /* Screen Hight (in pixels)           */
 #define BPP             16                  /* Bits per pixel                     */
 #define BYPP            ((BPP+7)/8)         /* Bytes per pixel                    */
 

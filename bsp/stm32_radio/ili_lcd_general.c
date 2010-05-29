@@ -35,12 +35,12 @@ static void LCD_FSMCConfig(void)
     FSMC_NORSRAMTimingInitTypeDef  p;
 
     /*-- FSMC Configuration ------------------------------------------------------*/
-    p.FSMC_AddressSetupTime = 1;             /* 地址建立时间  */
-    p.FSMC_AddressHoldTime = 0;              /* 地址保持时间  */
-    p.FSMC_DataSetupTime = 2;                /* 数据建立时间  */
+    p.FSMC_AddressSetupTime = 2;             /* 地址建立时间  */
+    p.FSMC_AddressHoldTime = 1;              /* 地址保持时间  */
+    p.FSMC_DataSetupTime = 3;                /* 数据建立时间  */
     p.FSMC_BusTurnAroundDuration = 0;        /* 总线返转时间  */
     p.FSMC_CLKDivision = 0;                  /* 时钟分频      */
-    p.FSMC_DataLatency = 1;                  /* 数据保持时间  */
+    p.FSMC_DataLatency = 0;                  /* 数据保持时间  */
     p.FSMC_AccessMode = FSMC_AccessMode_A;   /* FSMC 访问模式 */
 
     /* Color LCD configuration ------------------------------------
@@ -179,16 +179,53 @@ void lcd_gram_test(void)
         unsigned short temp;
         unsigned int test_x;
         unsigned int test_y;
+        unsigned int err_count=0;
 
         printf("\r\nLCD GRAM test....");
 
+        /* data bus test */
+        {
+            unsigned short temp1;
+            unsigned short temp2;
+            /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
+            write_reg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
+
+            /* wirte */
+            lcd_SetCursor(0,0);
+            rw_data_prepare();
+            write_data(0x5555);
+            write_data(0xAAAA);
+
+            /* read */
+            lcd_SetCursor(0,0);
+            if ( deviceid ==0x9325|| deviceid ==0x9328)
+            {
+                temp1 = ili9325_BGR2RGB( lcd_read_gram(0,0) );
+                temp2 = ili9325_BGR2RGB( lcd_read_gram(1,0) );
+                // ili9325_BGR2RGB( lcd_read_gram(test_x,test_y) )
+            }
+            else if( deviceid ==0x4531 )
+            {
+                temp1 = lcd_read_gram(0,0);
+                temp1 = lcd_read_gram(1,0);
+                // lcd_read_gram(test_x,test_y)
+            }
+
+            if( (temp1 == 0x5555) && (temp2 == 0xAAAA) )
+            {
+                printf(" data bus test pass!");
+            }
+            else
+            {
+                printf(" data bus test error!");
+            }
+        }
+
         /* write */
         temp=0;
-        /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
-        write_reg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
         lcd_SetCursor(0,0);
         rw_data_prepare();
-        for(test_y=0; test_y<76800; test_y++)
+        for(test_y=0; test_y<(LCD_WIDTH*LCD_HEIGHT); test_y++)
         {
             write_data(temp);
             temp++;
@@ -199,33 +236,38 @@ void lcd_gram_test(void)
 
         if ( deviceid ==0x9325|| deviceid ==0x9328)
         {
-            for(test_y=0; test_y<320; test_y++)
+            for(test_y=0; test_y<LCD_HEIGHT; test_y++)
             {
-                for(test_x=0; test_x<240; test_x++)
+                for(test_x=0; test_x<LCD_WIDTH; test_x++)
                 {
                     if( ili9325_BGR2RGB( lcd_read_gram(test_x,test_y) ) != temp++)
                     {
-                        printf("  LCD GRAM ERR!!");
-                        while(1);
+                        err_count++;
                     }
                 }
             }
-            printf("  TEST PASS!\r\n");
         }
         else if( deviceid ==0x4531 )
         {
-            for(test_y=0; test_y<320; test_y++)
+            for(test_y=0; test_y<LCD_HEIGHT; test_y++)
             {
-                for(test_x=0; test_x<240; test_x++)
+                for(test_x=0; test_x<LCD_WIDTH; test_x++)
                 {
                     if(  lcd_read_gram(test_x,test_y) != temp++)
                     {
-                        printf("  LCD GRAM ERR!!");
-                        while(1);
+                        err_count++;
                     }
                 }
             }
-            printf("  TEST PASS!\r\n");
+        }
+
+        if(err_count)
+        {
+            printf("  GRAM test error: %d",err_count);
+        }
+        else
+        {
+            printf("  GRAM test pass!");
         }
 
     }/* LCD GRAM TEST */
