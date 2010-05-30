@@ -381,13 +381,14 @@ static void function_play_radio(void* parameter)
     if (list != RT_NULL)
     {
         item = station_list_select(list, workbench);
+        station_list_destroy(list);
+
         if (item != RT_NULL)
         {
         	play_list_clear();
             play_list_append_radio(item->url, item->title);
         }
-
-        station_list_destroy(list);
+		else return; /* not play radio station */
     }
 
 	player_play_item(play_list_start());
