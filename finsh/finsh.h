@@ -17,35 +17,36 @@
 #include <rtthread.h>
 
 /* -- the beginning of option -- */
-#define FINSH_NAME_MAX			16		/* max length of identifier */
-#define FINSH_NODE_MAX			16		/* max number of node */
+#define FINSH_NAME_MAX          16      /* max length of identifier */
+#define FINSH_NODE_MAX          16      /* max number of node */
 
-#define FINSH_HEAP_MAX			128		/* max length of heap */
-#define FINSH_STRING_MAX		128		/* max length of string */
-#define FINSH_VARIABLE_MAX		8		/* max number of variable */
+#define FINSH_HEAP_MAX          128     /* max length of heap */
+#define FINSH_STRING_MAX        128     /* max length of string */
+#define FINSH_VARIABLE_MAX      8       /* max number of variable */
 
-#define FINSH_STACK_MAX			128		/* max stack size */
-#define FINSH_TEXT_MAX 			128		/* max text segment size */
+#define FINSH_STACK_MAX         128     /* max stack size */
+#define FINSH_TEXT_MAX          128     /* max text segment size */
 
-#define HEAP_ALIGNMENT			4		/* heap alignment */
+#define HEAP_ALIGNMENT          4       /* heap alignment */
 
 #define FINSH_GET16(x)    (*(x)) | (*((x)+1) << 8)
-#define FINSH_GET32(x)    (*(x)) | (*((x)+1) << 8) | (*((x)+2) << 16) | (*((x)+3) << 24)
+#define FINSH_GET32(x)    (rt_uint32_t)(*(x)) | ((rt_uint32_t)*((x)+1) << 8) | \
+    ((rt_uint32_t)*((x)+2) << 16) | ((rt_uint32_t)*((x)+3) << 24)
 
-#define FINSH_SET16(x, v)			\
-    do                          	\
-    {                           	\
-        *(x)     = (v) & 0x00ff; 	\
-        (*((x)+1)) = (v) >> 8;     	\
+#define FINSH_SET16(x, v)           \
+    do                              \
+    {                               \
+        *(x)     = (v) & 0x00ff;    \
+        (*((x)+1)) = (v) >> 8;      \
     } while ( 0 )
 
-#define FINSH_SET32(x, v)						\
-    do                                      	\
-    {                                       	\
-        *(x)     = (v)  & 0x000000ff;        	\
-        (*((x)+1)) = ((v) >> 8) & 0x000000ff;  	\
-        (*((x)+2)) = ((v) >> 16) & 0x000000ff; 	\
-        (*((x)+3)) = ((v) >> 24);              	\
+#define FINSH_SET32(x, v)                                       \
+    do                                                          \
+    {                                                           \
+        *(x)     = (rt_uint32_t)(v)  & 0x000000ff;              \
+        (*((x)+1)) = ((rt_uint32_t)(v) >> 8) & 0x000000ff;      \
+        (*((x)+2)) = ((rt_uint32_t)(v) >> 16) & 0x000000ff;     \
+        (*((x)+3)) = ((rt_uint32_t)(v) >> 24);                  \
     } while ( 0 )
 
 /* -- the end of option -- */
@@ -58,13 +59,14 @@
 /*@{*/
 
 #if defined(RT_USING_NEWLIB) || defined (RT_USING_MINILIBC)
+#include <sys/types.h>
 #include <string.h>
 #else
 typedef unsigned char  u_char;
 typedef unsigned short u_short;
 typedef unsigned long  u_long;
 
-#if !defined(__CC_ARM) && !defined(__ICCARM__)
+#if !defined(__CC_ARM) && !defined(__ICCARM__) && !defined(__ICCM16C__)
 typedef unsigned int size_t;
 
 #ifndef NULL
@@ -283,7 +285,7 @@ int finsh_flush(struct finsh_parser* parser);
 int finsh_reset(struct finsh_parser* parser);
 #ifdef RT_USING_DEVICE
 /* set finsh device */
-void finsh_set_device(char* device_name);
+void finsh_set_device(const char* device_name);
 #endif
 
 /* run finsh parser to generate abstract synatx tree */

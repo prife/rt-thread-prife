@@ -1,5 +1,6 @@
 #include <rtgui/rtgui.h>
 #include <rtgui/image.h>
+#include <rtgui/image_hdc.h>
 #include <rtgui/rtgui_system.h>
 
 #include <rtgui/widgets/view.h>
@@ -48,9 +49,11 @@ static rt_uint32_t play_time;
 #define PREV_BUTTON		0
 #define PLAYING_BUTTON	1
 #define NEXT_BUTTON 	2
-static struct rtgui_rect prev_btn_rect = {5, 117, 5 + 28, 117 + 22};
-static struct rtgui_rect playing_btn_rect = {32, 117, 32 + 28, 117 + 22};
-static struct rtgui_rect next_btn_rect = {59, 117, 59 + 28, 117 + 22};
+static const struct rtgui_rect prev_btn_rect = {5, 117, 5 + 28, 117 + 22};
+static const struct rtgui_rect playing_btn_rect = {32, 117, 32 + 28, 117 + 22};
+static const struct rtgui_rect next_btn_rect = {59, 117, 59 + 28, 117 + 22};
+static const struct rtgui_image_hdcmm play_image = RTGUI_IMAGE_HDC_DEF(2, 0x1c, 0x16, play_hdh);
+static const struct rtgui_image_hdcmm stop_image = RTGUI_IMAGE_HDC_DEF(2, 0x1c, 0x16, stop_hdh);
 
 static void player_play_item(struct play_item* item);
 static void player_stop(void);
@@ -177,18 +180,15 @@ static void player_update_tag_info()
 
 	/* update playing button */
 	if (player_mode == PLAYER_STOP)
-		button = rtgui_image_create_from_mem("hdc",
-			stop_hdh, sizeof(stop_hdh), RT_FALSE);
+		button = (rtgui_image_t*)&stop_image;
 	else
-		button = rtgui_image_create_from_mem("hdc",
-			play_hdh, sizeof(play_hdh), RT_FALSE);
+		button = (rtgui_image_t*)&play_image;
 
 	rect.x1 = 32;
 	rect.y1 = 92;
 	rect.x2 = 61;
 	rect.y2 = 114;
 	rtgui_image_blit(button, dc, &rect);
-	rtgui_image_destroy(button);
 
     RTGUI_DC_FC(dc) = fc;
 	RTGUI_DC_BC(dc) = bc;
