@@ -52,39 +52,39 @@ static void DMA_RxConfiguration(rt_uint32_t addr, rt_size_t size)
     DMA_ClearFlag(DMA1_FLAG_TC2 | DMA1_FLAG_TE2 | DMA1_FLAG_TC3 | DMA1_FLAG_TE3);
     dummy = 0;
 
-	/* DMA Channel configuration ----------------------------------------------*/
-	DMA_Cmd(DMA1_Channel2, DISABLE);
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&(SPI1->DR));
-	DMA_InitStructure.DMA_MemoryBaseAddr = (u32) addr;
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-	DMA_InitStructure.DMA_BufferSize = size;
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-	DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-	DMA_Init(DMA1_Channel2, &DMA_InitStructure);
+    /* DMA Channel configuration ----------------------------------------------*/
+    DMA_Cmd(DMA1_Channel2, DISABLE);
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&(SPI1->DR));
+    DMA_InitStructure.DMA_MemoryBaseAddr = (u32) addr;
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+    DMA_InitStructure.DMA_BufferSize = size;
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+    DMA_Init(DMA1_Channel2, &DMA_InitStructure);
 
-	DMA_Cmd(DMA1_Channel2, ENABLE);
+    DMA_Cmd(DMA1_Channel2, ENABLE);
 
-	/* Dummy TX channel configuration */
-	DMA_Cmd(DMA1_Channel3, DISABLE);
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&(SPI1->DR));
-	DMA_InitStructure.DMA_MemoryBaseAddr = (u32)(&dummy);
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-	DMA_InitStructure.DMA_BufferSize = size;
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Disable;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-	DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-	DMA_Init(DMA1_Channel3, &DMA_InitStructure);
+    /* Dummy TX channel configuration */
+    DMA_Cmd(DMA1_Channel3, DISABLE);
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&(SPI1->DR));
+    DMA_InitStructure.DMA_MemoryBaseAddr = (u32)(&dummy);
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
+    DMA_InitStructure.DMA_BufferSize = size;
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Disable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+    DMA_Init(DMA1_Channel3, &DMA_InitStructure);
 
-	DMA_Cmd(DMA1_Channel3, ENABLE);
+    DMA_Cmd(DMA1_Channel3, ENABLE);
 }
 #endif
 
@@ -150,8 +150,28 @@ static void read_page(uint32_t page, uint8_t *pHeader)
 {
 #if SPI_FLASH_USE_DMA
     rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
+    {/* SPI configure */
+        SPI_InitTypeDef SPI_InitStructure;
+        /*------------------------ SPI1 configuration ------------------------*/
+        SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
+        SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+        SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+        SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+        SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+        SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
+        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;/* 72M/2=36M */
+        SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+        SPI_InitStructure.SPI_CRCPolynomial = 7;
 
-	DMA_RxConfiguration((rt_uint32_t) pHeader, SECTOR_SIZE);
+        SPI_I2S_DeInit(SPI1);
+        SPI_Init(SPI1, &SPI_InitStructure);
+
+        /* Enable SPI_MASTER */
+        SPI_Cmd(SPI1, ENABLE);
+        SPI_CalculateCRC(SPI1, DISABLE);
+    }/* SPI1 configure */
+
+    DMA_RxConfiguration((rt_uint32_t) pHeader, SECTOR_SIZE);
 
     FLASH_CS_0();
 
@@ -166,19 +186,39 @@ static void read_page(uint32_t page, uint8_t *pHeader)
     SPI_HostWriteByte(0x00);
     SPI_HostWriteByte(0x00);
 
-	SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
-	SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
-	while (DMA_GetFlagStatus(DMA1_FLAG_TC2) == RESET);
+    SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
+    SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
+    while (DMA_GetFlagStatus(DMA1_FLAG_TC2) == RESET);
 
-	FLASH_CS_1();
+    FLASH_CS_1();
 
-	SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
+    SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
 
-	rt_sem_release(&spi1_lock);
+    rt_sem_release(&spi1_lock);
 #else
     uint16_t i;
 
     rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
+    {/* SPI configure */
+        SPI_InitTypeDef SPI_InitStructure;
+        /*------------------------ SPI1 configuration ------------------------*/
+        SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
+        SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+        SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+        SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+        SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+        SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
+        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;/* 72M/2=36M */
+        SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+        SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+        SPI_I2S_DeInit(SPI1);
+        SPI_Init(SPI1, &SPI_InitStructure);
+
+        /* Enable SPI_MASTER */
+        SPI_Cmd(SPI1, ENABLE);
+        SPI_CalculateCRC(SPI1, DISABLE);
+    }/* SPI1 configure */
 
     FLASH_CS_0();
 
@@ -193,12 +233,12 @@ static void read_page(uint32_t page, uint8_t *pHeader)
     SPI_HostWriteByte(0x00);
     SPI_HostWriteByte(0x00);
 
-	for (i = 0; i < SECTOR_SIZE; i++)
-	{
-		*pHeader++ = SPI_HostReadByte();
-	}
+    for (i = 0; i < SECTOR_SIZE; i++)
+    {
+        *pHeader++ = SPI_HostReadByte();
+    }
 
-	FLASH_CS_1();
+    FLASH_CS_1();
 
     rt_sem_release(&spi1_lock);
 #endif
@@ -209,6 +249,26 @@ static void write_page(uint32_t page, uint8_t *pHeader)
     uint16_t i;
 
     rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
+    {/* SPI configure */
+        SPI_InitTypeDef SPI_InitStructure;
+        /*------------------------ SPI1 configuration ------------------------*/
+        SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
+        SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+        SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+        SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+        SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+        SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
+        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;/* 72M/2=36M */
+        SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+        SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+        SPI_I2S_DeInit(SPI1);
+        SPI_Init(SPI1, &SPI_InitStructure);
+
+        /* Enable SPI_MASTER */
+        SPI_Cmd(SPI1, ENABLE);
+        SPI_CalculateCRC(SPI1, DISABLE);
+    }/* SPI1 configure */
 
     FLASH_CS_0();
 
@@ -253,19 +313,19 @@ static rt_err_t rt_spi_flash_close(rt_device_t dev)
 
 static rt_err_t rt_spi_flash_control(rt_device_t dev, rt_uint8_t cmd, void *args)
 {
-	RT_ASSERT(dev != RT_NULL);
+    RT_ASSERT(dev != RT_NULL);
 
-	if (cmd == RT_DEVICE_CTRL_BLK_GETGEOME)
-	{
-		struct rt_device_blk_geometry *geometry;
+    if (cmd == RT_DEVICE_CTRL_BLK_GETGEOME)
+    {
+        struct rt_device_blk_geometry *geometry;
 
-		geometry = (struct rt_device_blk_geometry *)args;
-		if (geometry == RT_NULL) return -RT_ERROR;
+        geometry = (struct rt_device_blk_geometry *)args;
+        if (geometry == RT_NULL) return -RT_ERROR;
 
-		geometry->bytes_per_sector = 512;
-		geometry->sector_count = 4096;
-		geometry->block_size = 4096; /* block erase: 4k */
-	}
+        geometry->bytes_per_sector = 512;
+        geometry->sector_count = 4096;
+        geometry->block_size = 4096; /* block erase: 4k */
+    }
 
     return RT_EOK;
 }
@@ -281,7 +341,7 @@ static rt_size_t rt_spi_flash_read(rt_device_t dev, rt_off_t pos, void* buffer, 
         /* only supply single block read: block size 512Byte */
 #if SPI_FLASH_USE_DMA
         read_page((pos / SECTOR_SIZE + index), _spi_flash_buffer);
-    	rt_memcpy(((rt_uint8_t *) buffer + index * SECTOR_SIZE), _spi_flash_buffer, SECTOR_SIZE);
+        rt_memcpy(((rt_uint8_t *) buffer + index * SECTOR_SIZE), _spi_flash_buffer, SECTOR_SIZE);
 #else
         read_page((pos / SECTOR_SIZE + index), ((rt_uint8_t *) buffer + index * SECTOR_SIZE));
 #endif

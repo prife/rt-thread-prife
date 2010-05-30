@@ -202,13 +202,11 @@ void lcd_gram_test(void)
             {
                 temp1 = ili9325_BGR2RGB( lcd_read_gram(0,0) );
                 temp2 = ili9325_BGR2RGB( lcd_read_gram(1,0) );
-                // ili9325_BGR2RGB( lcd_read_gram(test_x,test_y) )
             }
             else if( deviceid ==0x4531 )
             {
                 temp1 = lcd_read_gram(0,0);
-                temp1 = lcd_read_gram(1,0);
-                // lcd_read_gram(test_x,test_y)
+                temp2 = lcd_read_gram(1,0);
             }
 
             if( (temp1 == 0x5555) && (temp2 == 0xAAAA) )
@@ -217,7 +215,7 @@ void lcd_gram_test(void)
             }
             else
             {
-                printf(" data bus test error!");
+                printf(" data bus test error: %04X &04X",temp1,temp2);
             }
         }
 

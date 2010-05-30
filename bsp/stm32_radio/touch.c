@@ -59,43 +59,37 @@ static void rtgui_touch_calculate()
 {
     if (touch != RT_NULL)
     {
-        unsigned int touch_hw_tmp_x[10];
-        unsigned int touch_hw_tmp_y[10];
-        unsigned int i;
+        rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
+        {/* SPI configure */
+            SPI_InitTypeDef SPI_InitStructure;
+            /*------------------------ SPI1 configuration ------------------------*/
+            SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
+            SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+            SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+            SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+            SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+            SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
+            SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_64;/* 72M/64=1.125M */
+            SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+            SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+            SPI_I2S_DeInit(SPI1);
+            SPI_Init(SPI1, &SPI_InitStructure);
+
+            /* Enable SPI_MASTER */
+            SPI_Cmd(SPI1, ENABLE);
+            SPI_CalculateCRC(SPI1, DISABLE);
+        }/* SPI1 configure */
 
         CS_0();
-        for(i=0; i<10; i++)
-        {
-            WriteDataTo7843(TOUCH_MSR_X);                                    /* read X */
-            touch_hw_tmp_x[i] = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
-            touch_hw_tmp_x[i] |= ((SPI_WriteByte(TOUCH_MSR_Y)>>4)&0x0F );    /* read LSB bit[7:0] */
-            touch_hw_tmp_y[i] = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
-            touch_hw_tmp_y[i] |= ((SPI_WriteByte(0x00)>>4)&0x0F );           /* read LSB bit[7:0] */
-        }
+        WriteDataTo7843(TOUCH_MSR_X);                                    /* read X */
+        touch->x = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
+        touch->x |= ((SPI_WriteByte(TOUCH_MSR_Y)>>4)&0x0F );    /* read LSB bit[7:0] */
+        touch->y = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
+        touch->y |= ((SPI_WriteByte(0x00)>>4)&0x0F );           /* read LSB bit[7:0] */
         WriteDataTo7843( 1<<7 ); /* ´ò¿ªÖÐ¶Ï */
         CS_1();
-
-
-        {
-            unsigned int temp_x = 0;
-            unsigned int temp_y = 0;
-            unsigned int max_x = 0;
-            unsigned int min_x = 0xffff;
-            unsigned int max_y = 0;
-            unsigned int min_y = 0xffff;
-
-            for(i=0; i<10; i++)
-            {
-                temp_x += touch_hw_tmp_x[i];
-                temp_y += touch_hw_tmp_y[i];
-                if(touch_hw_tmp_x[i] > max_x) max_x = touch_hw_tmp_x[i];
-                if(touch_hw_tmp_x[i] < min_x) min_x = touch_hw_tmp_x[i];
-                if(touch_hw_tmp_y[i] > max_y) max_y = touch_hw_tmp_y[i];
-                if(touch_hw_tmp_y[i] < min_y) min_y = touch_hw_tmp_y[i];
-            }
-            touch->x = (temp_x-max_x-min_x) / 8;
-            touch->y = (temp_y-max_y-min_y) / 8;
-        }
+        rt_sem_release(&spi1_lock);
 
         /* if it's not in calibration status  */
         if (touch->calibrating != RT_TRUE)
