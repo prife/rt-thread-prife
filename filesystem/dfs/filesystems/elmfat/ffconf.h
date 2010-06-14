@@ -84,8 +84,11 @@
 /	1    - ASCII only (Valid for non LFN cfg.)
 */
 
-
+#ifdef RT_DFS_ELM_USE_LFN
+#define	_USE_LFN	1		/* 0, 1 or 2 */
+#else
 #define	_USE_LFN	0		/* 0, 1 or 2 */
+#endif
 #define	_MAX_LFN	255		/* Maximum LFN length to handle (12 to 255) */
 /* The _USE_LFN option switches the LFN support.
 /
