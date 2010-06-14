@@ -10,9 +10,14 @@
 #define MEDIA_M3U		3
 #define MEDIA_RADIO		4
 
+#define GBK2UNI_FILE "/resource/gbk2uni.tbl"
+#define UNI2GBK_FILE "/resource/uni2gbk.tbl"
+
 int media_type(const char* fn);
 char *strncasestr(const char *haystack, const char *needle);
 rt_uint32_t read_line(int fd, char* line, rt_uint32_t line_size);
 rt_bool_t is_directory(const char* path);
+rt_uint16_t ff_convert(rt_uint16_t src, rt_uint32_t dir);
+rt_uint16_t ff_wtoupper(rt_uint16_t chr);
 
 #endif

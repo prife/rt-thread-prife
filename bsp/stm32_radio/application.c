@@ -52,6 +52,8 @@ void rt_init_thread_entry(void *parameter)
     /* Filesystem Initialization */
 #ifdef RT_USING_DFS
     {
+		extern void ff_convert_init();
+
         /* init the device filesystem */
         dfs_init();
 
@@ -69,6 +71,10 @@ void rt_init_thread_entry(void *parameter)
             rt_kprintf("File System initialized!\n");
         else
             rt_kprintf("File System init failed!\n");
+
+#ifdef RT_DFS_ELM_USE_LFN
+		ff_convert_init();
+#endif
     }
 #endif
 
