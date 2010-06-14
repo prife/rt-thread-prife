@@ -16,6 +16,8 @@
 #ifndef __BOARD_H__
 #define __BOARD_H__
 
+#include <stdint.h>
+
 /* board configuration */
 // <o> SDCard Driver <1=>SDIO sdcard <0=>SPI MMC card
 // 	<i>Default: 1
@@ -72,6 +74,8 @@ void rt_hw_board_init(void);
 
 void rt_hw_usart_init(void);
 void rt_hw_sdcard_init(void);
+
+void rt_hw_spi1_baud_rate(uint16_t SPI_BaudRatePrescaler);
 
 extern struct rt_semaphore spi1_lock;
 

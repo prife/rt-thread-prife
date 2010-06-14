@@ -50,7 +50,6 @@ static void DMA_RxConfiguration(rt_uint32_t addr, rt_size_t size)
     DMA_InitTypeDef DMA_InitStructure;
 
     DMA_ClearFlag(DMA1_FLAG_TC2 | DMA1_FLAG_TE2 | DMA1_FLAG_TC3 | DMA1_FLAG_TE3);
-    dummy = 0;
 
     /* DMA Channel configuration ----------------------------------------------*/
     DMA_Cmd(DMA1_Channel2, DISABLE);
@@ -150,26 +149,8 @@ static void read_page(uint32_t page, uint8_t *pHeader)
 {
 #if SPI_FLASH_USE_DMA
     rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
-    {/* SPI configure */
-        SPI_InitTypeDef SPI_InitStructure;
-        /*------------------------ SPI1 configuration ------------------------*/
-        SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
-        SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-        SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-        SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-        SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-        SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
-        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;/* 72M/2=36M */
-        SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-        SPI_InitStructure.SPI_CRCPolynomial = 7;
-
-        SPI_I2S_DeInit(SPI1);
-        SPI_Init(SPI1, &SPI_InitStructure);
-
-        /* Enable SPI_MASTER */
-        SPI_Cmd(SPI1, ENABLE);
-        SPI_CalculateCRC(SPI1, DISABLE);
-    }/* SPI1 configure */
+    /* SPI1 configure */
+    rt_hw_spi1_baud_rate(SPI_BaudRatePrescaler_4);/* 72M/4=18M */
 
     DMA_RxConfiguration((rt_uint32_t) pHeader, SECTOR_SIZE);
 
@@ -199,26 +180,8 @@ static void read_page(uint32_t page, uint8_t *pHeader)
     uint16_t i;
 
     rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
-    {/* SPI configure */
-        SPI_InitTypeDef SPI_InitStructure;
-        /*------------------------ SPI1 configuration ------------------------*/
-        SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
-        SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-        SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-        SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-        SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-        SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
-        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;/* 72M/2=36M */
-        SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-        SPI_InitStructure.SPI_CRCPolynomial = 7;
-
-        SPI_I2S_DeInit(SPI1);
-        SPI_Init(SPI1, &SPI_InitStructure);
-
-        /* Enable SPI_MASTER */
-        SPI_Cmd(SPI1, ENABLE);
-        SPI_CalculateCRC(SPI1, DISABLE);
-    }/* SPI1 configure */
+    /* SPI1 configure */
+    rt_hw_spi1_baud_rate(SPI_BaudRatePrescaler_4);/* 72M/4=18M */
 
     FLASH_CS_0();
 
@@ -249,26 +212,8 @@ static void write_page(uint32_t page, uint8_t *pHeader)
     uint16_t i;
 
     rt_sem_take(&spi1_lock, RT_WAITING_FOREVER);
-    {/* SPI configure */
-        SPI_InitTypeDef SPI_InitStructure;
-        /*------------------------ SPI1 configuration ------------------------*/
-        SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//SPI_Direction_1Line_Tx;
-        SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-        SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-        SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-        SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-        SPI_InitStructure.SPI_NSS  = SPI_NSS_Soft;
-        SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;/* 72M/2=36M */
-        SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-        SPI_InitStructure.SPI_CRCPolynomial = 7;
-
-        SPI_I2S_DeInit(SPI1);
-        SPI_Init(SPI1, &SPI_InitStructure);
-
-        /* Enable SPI_MASTER */
-        SPI_Cmd(SPI1, ENABLE);
-        SPI_CalculateCRC(SPI1, DISABLE);
-    }/* SPI1 configure */
+    /* SPI1 configure */
+    rt_hw_spi1_baud_rate(SPI_BaudRatePrescaler_4);/* 72M/4=18M */
 
     FLASH_CS_0();
 
@@ -340,8 +285,17 @@ static rt_size_t rt_spi_flash_read(rt_device_t dev, rt_off_t pos, void* buffer, 
     {
         /* only supply single block read: block size 512Byte */
 #if SPI_FLASH_USE_DMA
+        uint16_t *sp, *dp, *end;
+
         read_page((pos / SECTOR_SIZE + index), _spi_flash_buffer);
-        rt_memcpy(((rt_uint8_t *) buffer + index * SECTOR_SIZE), _spi_flash_buffer, SECTOR_SIZE);
+//    	rt_memcpy(((rt_uint8_t *) buffer + index * SECTOR_SIZE), _spi_flash_buffer, SECTOR_SIZE);
+		sp = (uint16_t *) _spi_flash_buffer;
+		dp = (uint16_t *) buffer;
+		end = sp + SECTOR_SIZE / 2;
+		while (sp < end)
+		{
+			*dp++ = *sp++;
+		}
 #else
         read_page((pos / SECTOR_SIZE + index), ((rt_uint8_t *) buffer + index * SECTOR_SIZE));
 #endif

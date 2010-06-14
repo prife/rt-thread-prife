@@ -3188,4 +3188,5 @@ void rt_hw_sdcard_init()
 
 __return:
 	rt_kprintf("sdcard init failed\n");
+    GPIO_SetBits(GPIOC,GPIO_Pin_6); /* SD card power down */
 }

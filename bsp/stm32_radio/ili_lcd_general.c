@@ -4,6 +4,7 @@
 // ili9320 ili9325 ili9328
 // LG4531
 
+//内联函数定义,用以提高性能
 #ifdef __CC_ARM                			 /* ARM Compiler 	*/
 #define lcd_inline   				static __inline
 #elif defined (__ICCARM__)        		/* for IAR Compiler */
@@ -14,15 +15,16 @@
 #define lcd_inline                  static
 #endif
 
-void rt_kprintf(const char *fmt, ...);
-#define printf                          rt_kprintf
-
 #define rw_data_prepare()               write_cmd(34)
 
 
 /********* control ***********/
 #include "stm32f10x.h"
 #include "board.h"
+
+//输出重定向.当不进行重定向时.
+#define printf               rt_kprintf //使用rt_kprintf来输出
+//#define printf(...)                       //无输出
 
 /* LCD is connected to the FSMC_Bank1_NOR/SRAM2 and NE2 is used as ship select signal */
 /* RS <==> A2 */
@@ -113,15 +115,17 @@ lcd_inline unsigned short read_reg(unsigned char reg_addr)
     return (val);
 }
 
-/****************************************************************************
-* 名    称：u16 ili9325_BGR2RGB(u16 c)
-* 功    能：RRRRRGGGGGGBBBBB 改为 BBBBBGGGGGGRRRRR 格式
-* 入口参数：c      BRG 颜色值
-* 出口参数：RGB 颜色值
-* 说    明：内部函数调用
-* 调用方法：
-****************************************************************************/
-unsigned short ili9325_BGR2RGB(unsigned short c)
+/********* control <只移植以上函数即可> ***********/
+
+static unsigned short deviceid=0;//设置一个静态变量用来保存LCD的ID
+
+//返回LCD的ID
+unsigned int lcd_getdeviceid(void)
+{
+    return deviceid;
+}
+
+unsigned short BGR2RGB(unsigned short c)
 {
     u16  r, g, b, rgb;
 
@@ -132,15 +136,6 @@ unsigned short ili9325_BGR2RGB(unsigned short c)
     rgb =  (b<<11) + (g<<5) + (r<<0);
 
     return( rgb );
-}
-
-/********* control ***********/
-
-static unsigned short deviceid=0;
-
-unsigned int lcd_getdeviceid(void)
-{
-    return deviceid;
 }
 
 void lcd_SetCursor(unsigned int x,unsigned int y)
@@ -156,8 +151,8 @@ unsigned short lcd_read_gram(unsigned int x,unsigned int y)
     lcd_SetCursor(x,y);
     rw_data_prepare();
     /* dummy read */
-    temp = LCD_RAM;
-    temp = LCD_RAM;
+    temp = read_data();
+    temp = read_data();
     return temp;
 }
 
@@ -172,103 +167,103 @@ void lcd_clear(unsigned short Color)
     }
 }
 
+void lcd_data_bus_test(void)
+{
+    unsigned short temp1;
+    unsigned short temp2;
+    /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
+    write_reg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
+
+    /* wirte */
+    lcd_SetCursor(0,0);
+    rw_data_prepare();
+    write_data(0x5555);
+    write_data(0xAAAA);
+
+    /* read */
+    lcd_SetCursor(0,0);
+    if (
+        (deviceid ==0x9325)
+        || (deviceid ==0x9328)
+        || (deviceid ==0x9320)
+    )
+    {
+        temp1 = BGR2RGB( lcd_read_gram(0,0) );
+        temp2 = BGR2RGB( lcd_read_gram(1,0) );
+    }
+    else if( deviceid ==0x4531 )
+    {
+        temp1 = lcd_read_gram(0,0);
+        temp2 = lcd_read_gram(1,0);
+    }
+
+    if( (temp1 == 0x5555) && (temp2 == 0xAAAA) )
+    {
+        printf(" data bus test pass!");
+    }
+    else
+    {
+        printf(" data bus test error: %04X %04X",temp1,temp2);
+    }
+}
+
 void lcd_gram_test(void)
 {
-    /* LCD GRAM TEST */
+    unsigned short temp;
+    unsigned int test_x;
+    unsigned int test_y;
+
+    printf(" LCD GRAM test....");
+
+    /* write */
+    temp=0;
+    /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
+    write_reg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
+    lcd_SetCursor(0,0);
+    rw_data_prepare();
+    for(test_y=0; test_y<76800; test_y++)
     {
-        unsigned short temp;
-        unsigned int test_x;
-        unsigned int test_y;
-        unsigned int err_count=0;
+        write_data(temp);
+        temp++;
+    }
 
-        printf("\r\nLCD GRAM test....");
+    /* read */
+    temp=0;
 
-        /* data bus test */
+    if (
+        (deviceid ==0x9320)
+        || (deviceid ==0x9325)
+        || (deviceid ==0x9328)
+    )
+    {
+        for(test_y=0; test_y<320; test_y++)
         {
-            unsigned short temp1;
-            unsigned short temp2;
-            /* [5:4]-ID~ID0 [3]-AM-1垂直-0水平 */
-            write_reg(0x0003,(1<<12)|(1<<5)|(1<<4) | (0<<3) );
-
-            /* wirte */
-            lcd_SetCursor(0,0);
-            rw_data_prepare();
-            write_data(0x5555);
-            write_data(0xAAAA);
-
-            /* read */
-            lcd_SetCursor(0,0);
-            if ( deviceid ==0x9325|| deviceid ==0x9328)
+            for(test_x=0; test_x<240; test_x++)
             {
-                temp1 = ili9325_BGR2RGB( lcd_read_gram(0,0) );
-                temp2 = ili9325_BGR2RGB( lcd_read_gram(1,0) );
-            }
-            else if( deviceid ==0x4531 )
-            {
-                temp1 = lcd_read_gram(0,0);
-                temp2 = lcd_read_gram(1,0);
-            }
-
-            if( (temp1 == 0x5555) && (temp2 == 0xAAAA) )
-            {
-                printf(" data bus test pass!");
-            }
-            else
-            {
-                printf(" data bus test error: %04X &04X",temp1,temp2);
-            }
-        }
-
-        /* write */
-        temp=0;
-        lcd_SetCursor(0,0);
-        rw_data_prepare();
-        for(test_y=0; test_y<(LCD_WIDTH*LCD_HEIGHT); test_y++)
-        {
-            write_data(temp);
-            temp++;
-        }
-
-        /* read */
-        temp=0;
-
-        if ( deviceid ==0x9325|| deviceid ==0x9328)
-        {
-            for(test_y=0; test_y<LCD_HEIGHT; test_y++)
-            {
-                for(test_x=0; test_x<LCD_WIDTH; test_x++)
+                if( BGR2RGB( lcd_read_gram(test_x,test_y) ) != temp++)
                 {
-                    if( ili9325_BGR2RGB( lcd_read_gram(test_x,test_y) ) != temp++)
-                    {
-                        err_count++;
-                    }
+                    printf("  LCD GRAM ERR!!");
+                    while(1);
                 }
             }
         }
-        else if( deviceid ==0x4531 )
+        printf("  TEST PASS!\r\n");
+    }
+    else if( deviceid ==0x4531 )
+    {
+        for(test_y=0; test_y<320; test_y++)
         {
-            for(test_y=0; test_y<LCD_HEIGHT; test_y++)
+            for(test_x=0; test_x<240; test_x++)
             {
-                for(test_x=0; test_x<LCD_WIDTH; test_x++)
+                if(  lcd_read_gram(test_x,test_y) != temp++)
                 {
-                    if(  lcd_read_gram(test_x,test_y) != temp++)
-                    {
-                        err_count++;
-                    }
+                    printf("  LCD GRAM ERR!!");
+                    while(1);
                 }
             }
         }
-
-        if(err_count)
-        {
-            printf("  GRAM test error: %d",err_count);
-        }
-        else
-        {
-            printf("  GRAM test pass!");
-        }
-
-    }/* LCD GRAM TEST */
+        printf("  TEST PASS!\r\n");
+    }
 }
 
 void lcd_Initializtion(void)
@@ -279,9 +274,12 @@ void lcd_Initializtion(void)
     /* deviceid check */
     if(
         (deviceid != 0x4531)
-        && ( deviceid != 0x9325)
+        && (deviceid != 0x7783)
+        && (deviceid != 0x9320)
+        && (deviceid != 0x9325)
         && (deviceid != 0x9328)
-        && (deviceid != 0x7783) )
+        && (deviceid != 0x9300)
+    )
     {
         printf("Invalid LCD ID:%08X\r\n",deviceid);
         printf("Please check you hardware and configure.");
@@ -289,7 +287,7 @@ void lcd_Initializtion(void)
     }
     else
     {
-        printf("LCD Device ID : %08X ",deviceid);
+        printf("\r\nLCD Device ID : %04X ",deviceid);
     }
 
     if (deviceid==0x9325|| deviceid==0x9328)
@@ -367,6 +365,68 @@ void lcd_Initializtion(void)
         write_reg(0x0007,0x0133);
         write_reg(0x0020,0x0000);
         write_reg(0x0021,0x0000);
+    }
+    else if( deviceid==0x9320|| deviceid==0x9300)
+    {
+        write_reg(0x00,0x0000);
+#if defined(_ILI_REVERSE_DIRECTION_)
+        write_reg(0x0001,0x0100);                    //Reverse Display
+#else
+        write_reg(0x0001,0x0000);                    // Driver Output Contral.
+#endif
+        write_reg(0x02,0x0700);	//LCD Driver Waveform Contral.
+//		write_reg(0x03,0x1030);	//Entry Mode Set.
+        write_reg(0x03,0x1018);	//Entry Mode Set.
+
+        write_reg(0x04,0x0000);	//Scalling Contral.
+        write_reg(0x08,0x0202);	//Display Contral 2.(0x0207)
+        write_reg(0x09,0x0000);	//Display Contral 3.(0x0000)
+        write_reg(0x0a,0x0000);	//Frame Cycle Contal.(0x0000)
+        write_reg(0x0c,(1<<0));	//Extern Display Interface Contral 1.(0x0000)
+        write_reg(0x0d,0x0000);	//Frame Maker Position.
+        write_reg(0x0f,0x0000);	//Extern Display Interface Contral 2.
+
+        delay(15);
+        write_reg(0x07,0x0101);	//Display Contral.
+        delay(15);
+
+        write_reg(0x10,(1<<12)|(0<<8)|(1<<7)|(1<<6)|(0<<4));	//Power Control 1.(0x16b0)
+        write_reg(0x11,0x0007);								//Power Control 2.(0x0001)
+        write_reg(0x12,(1<<8)|(1<<4)|(0<<0));					//Power Control 3.(0x0138)
+        write_reg(0x13,0x0b00);								//Power Control 4.
+        write_reg(0x29,0x0000);								//Power Control 7.
+
+        write_reg(0x2b,(1<<14)|(1<<4));
+
+        write_reg(0x50,0);		//Set X Start.
+        write_reg(0x51,239);	//Set X End.
+        write_reg(0x52,0);		//Set Y Start.
+        write_reg(0x53,319);	//Set Y End.
+
+#if defined(_ILI_REVERSE_DIRECTION_)
+        write_reg(0x0060,0x2700);  //Driver Output Control.
+#else
+        write_reg(0x0060,0xA700);
+#endif
+        write_reg(0x61,0x0001);	//Driver Output Control.
+        write_reg(0x6a,0x0000);	//Vertical Srcoll Control.
+
+        write_reg(0x80,0x0000);	//Display Position? Partial Display 1.
+        write_reg(0x81,0x0000);	//RAM Address Start? Partial Display 1.
+        write_reg(0x82,0x0000);	//RAM Address End-Partial Display 1.
+        write_reg(0x83,0x0000);	//Displsy Position? Partial Display 2.
+        write_reg(0x84,0x0000);	//RAM Address Start? Partial Display 2.
+        write_reg(0x85,0x0000);	//RAM Address End? Partial Display 2.
+
+        write_reg(0x90,(0<<7)|(16<<0));	//Frame Cycle Contral.(0x0013)
+        write_reg(0x92,0x0000);	//Panel Interface Contral 2.(0x0000)
+        write_reg(0x93,0x0001);	//Panel Interface Contral 3.
+        write_reg(0x95,0x0110);	//Frame Cycle Contral.(0x0110)
+        write_reg(0x97,(0<<8));	//
+        write_reg(0x98,0x0000);	//Frame Cycle Contral.
+
+
+        write_reg(0x07,0x0173);	//(0x0173)
     }
     else if( deviceid==0x4531 )
     {
@@ -482,8 +542,12 @@ void lcd_Initializtion(void)
         delay(20);
     }
 
+    //数据总线测试,用于测试硬件连接是否正常.
+    lcd_data_bus_test();
+    //GRAM测试,此测试可以测试LCD控制器内部GRAM.测试通过保证硬件正常
     lcd_gram_test();
 
+    //清屏
     lcd_clear( Blue );
 }
 
@@ -515,7 +579,7 @@ void rt_hw_lcd_set_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y)
 void rt_hw_lcd_get_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y)
 {
     unsigned short p;
-    p = ili9325_BGR2RGB( lcd_read_gram(x,y) );
+    p = BGR2RGB( lcd_read_gram(x,y) );
     *c = rtgui_color_from_565p(p);
 }
 
