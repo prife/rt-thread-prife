@@ -681,7 +681,7 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
         case PLAYER_REQUEST_PLAY_SINGLE_FILE:
         case PLAYER_REQUEST_PLAY_LIST:
             rtgui_timer_start(info_timer);
-            break;
+			return RT_TRUE;
 
         case PLAYER_REQUEST_STOP:
         {
@@ -716,7 +716,7 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
 			/* update tag information */
 			player_update_tag_info();
         }
-        break;
+		return RT_TRUE;
 
         case PLAYER_REQUEST_FREEZE:
         {
@@ -761,13 +761,13 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
 		case PLAYER_REQUEST_UPDATE_INFO:
 			/* update status information */
 			player_update_tag_info();
-			break;
+			return RT_TRUE;
 
         default:
             break;
         }
 
-        return RT_TRUE;
+        return RT_FALSE;
     }
 
     return rtgui_view_event_handler(widget, event);
@@ -801,8 +801,8 @@ rt_bool_t player_workbench_event_handler(rtgui_widget_t *widget, rtgui_event_t *
 		}
 		else 
 		{
-			/* let home view to handle it */
-			return home_view_event_handler(RTGUI_WIDGET(home_view), event);
+			/* let default workbench event handler to handle it */
+			return rtgui_workbench_event_handler(widget, event);
 		}
 	}
 

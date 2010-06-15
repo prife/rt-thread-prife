@@ -21,9 +21,6 @@ struct station_list
 struct station_list* station_list_create(const char* fn);
 void station_list_destroy(struct station_list* list);
 
-/* update station list file from network */
-void station_list_update(struct rtgui_workbench* workbench);
-
 /* select a station from list */
 struct station_item* station_list_select(struct station_list* list, struct rtgui_workbench* workbench);
 

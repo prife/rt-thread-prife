@@ -302,7 +302,9 @@ static rt_bool_t update_radio_list_view_event_handler(struct rtgui_widget* widge
         {
         case RTGUI_EVENT_PAINT:
             drawing_update_state_info(widget);
-            return RT_FALSE;
+
+			/* this event has handled, return TRUE */
+            return RT_TRUE;
         }
         return RT_FALSE;
     }

@@ -150,11 +150,6 @@ void station_list_destroy(struct station_list* list)
 	rt_free(list);
 }
 
-/* update station list file from network */
-void station_list_update(struct rtgui_workbench* workbench)
-{
-}
-
 static void station_list_selected(void* parameter)
 {
 	rtgui_list_view_t *view;
