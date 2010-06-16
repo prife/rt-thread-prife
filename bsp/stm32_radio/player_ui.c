@@ -157,7 +157,7 @@ static void player_update_tag_info()
     rect.y2 = rect.y1 + 16;
 	RTGUI_DC_BC(dc) = RTGUI_RGB(0, 125, 198);
 	rtgui_dc_fill_rect(dc, &rect);
-	
+
     RTGUI_DC_FC(dc) = black;
     if (player_mode == PLAYER_STOP)
     {
@@ -200,7 +200,7 @@ static void player_update_list()
 {
 	int index;
 	struct play_item* item;
-	
+
 	if (music_listitems != RT_NULL)
 	{
 		for (index = 0; index < music_listitems_size; index ++)
@@ -256,7 +256,7 @@ static void player_onbutton(int type)
 				player_play_item(item);
 				next_step = PLAYER_STEP_NEXT;
 				player_update_tag_info();
-			}			
+			}
 		}
 		else
 		{
@@ -286,7 +286,7 @@ static void player_play_list_onitem(rtgui_widget_t* widget, rtgui_event_t* event
 				player_play_item(item);
 				next_step = PLAYER_STEP_NEXT;
 				player_update_tag_info();
-			}			
+			}
 		}
 		else
 		{
@@ -330,7 +330,7 @@ static void player_play_item(struct play_item* item)
 	type = media_type(item->fn);
 	/* clear tag information */
 	rt_memset(&tinfo, 0, sizeof(tinfo));
-	
+
 	if (type == MEDIA_RADIO)
 	{
 		/* set title and information */
@@ -343,7 +343,7 @@ static void player_play_item(struct play_item* item)
 		/* send play request */
 		player_radio_req(item->fn, item->title);
 	}
-	else 
+	else
 	{
 		/* set title and information */
 		if (type == MEDIA_MP3)
@@ -508,29 +508,27 @@ void function_action(void* parameter)
     return;
 }
 
-void function_cable(void* parameter)
+static void function_setting(void* parameter)
+{
+    extern void setting_ui(rtgui_workbench_t* workbench);
+    setting_ui(workbench);
+}
+
+static void function_cable(void* parameter)
 {
     extern void USB_cable(void);
     USB_cable();
 }
 
-#if (LCD_VERSION==2)
-extern void calibration_init(void);
-void function_calibration(void * parameter)
-{
-    calibration_init();
-}
-#endif
-
 #ifdef RT_USING_RTI
-void function_rti(void* parameter)
+static void function_rti(void* parameter)
 {
 	extern void rti_stub_init(rt_size_t mem_size);
 	rti_stub_init(32 * 1024);
 }
 #endif
 
-const struct rtgui_list_item function_list[] =
+static const struct rtgui_list_item function_list[] =
 {
     {"返回播放器", RT_NULL, function_player, RT_NULL},
     {"选择电台", RT_NULL, function_play_radio, RT_NULL},
@@ -538,10 +536,7 @@ const struct rtgui_list_item function_list[] =
     {"播放文件", RT_NULL, function_filelist, RT_NULL},
     {"浏览图片", RT_NULL, function_show_picure, RT_NULL},
     {"设备信息", RT_NULL, function_device, RT_NULL},
-    {"选项设置", RT_NULL, function_action, RT_NULL},
-#if (LCD_VERSION==2)
-    {"触屏校准", RT_NULL, function_calibration, RT_NULL},
-#endif
+    {"选项设置", RT_NULL, function_setting, RT_NULL},
     {"USB 联机", RT_NULL, function_cable, RT_NULL},
 #ifdef RT_USING_RTI
 	{"打开调试", RT_NULL, function_rti, RT_NULL},
@@ -704,7 +699,7 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
 				/* play current item */
 				item = play_list_current();
 			}
-			
+
 			if (item != RT_NULL)
 				player_play_item(item);
 			else
@@ -793,13 +788,13 @@ rt_bool_t player_workbench_event_handler(rtgui_widget_t *widget, rtgui_event_t *
 	{
         struct rtgui_event_command* ecmd = (struct rtgui_event_command*)event;
 
-		if ((ecmd->command_id == PLAYER_REQUEST_FUNCTION_VIEW) && 
+		if ((ecmd->command_id == PLAYER_REQUEST_FUNCTION_VIEW) &&
 			!RTGUI_WORKBENCH_IS_MODAL_MODE(workbench))
 		{
 			rtgui_view_show(RTGUI_VIEW(function_view), RT_FALSE);
 			return RT_TRUE;
 		}
-		else 
+		else
 		{
 			/* let default workbench event handler to handle it */
 			return rtgui_workbench_event_handler(widget, event);

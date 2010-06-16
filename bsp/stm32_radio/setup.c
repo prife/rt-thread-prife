@@ -1,3 +1,5 @@
+#include <rtthread.h>
+#include "board.h"
 #include "setup.h"
 #include <dfs_posix.h>
 
@@ -230,4 +232,63 @@ rt_err_t save_setup(void)
     rt_free(buf);
 
     return RT_EOK;
+}
+
+#include <rtgui/rtgui.h>
+#include <rtgui/rtgui_system.h>
+#include <rtgui/image.h>
+#include <rtgui/image_hdc.h>
+#include <rtgui/widgets/workbench.h>
+#include <rtgui/widgets/view.h>
+#include <rtgui/widgets/list_view.h>
+
+static struct rtgui_list_view* function_view = RT_NULL;
+static rtgui_workbench_t* father_workbench   = RT_NULL;
+
+//销毁本view返回上级菜单
+static void function_action_return(void * paramter)
+{
+    rtgui_workbench_remove_view ( father_workbench, RTGUI_VIEW(function_view) );
+    rtgui_view_destroy ( RTGUI_VIEW(function_view) );
+    function_view = RT_NULL;
+}
+
+#if (LCD_VERSION==2)
+extern void calibration_init(void);
+static void function_calibration(void * parameter)
+{
+    calibration_init();
+}
+#endif
+
+static void function_remote_study(void * paramter)
+{
+    extern void remote_study_ui(rtgui_workbench_t* workbench);
+    remote_study_ui(father_workbench);
+}
+
+static const struct rtgui_list_item function_list[] =
+{
+    {"返回上级菜单", RT_NULL, function_action_return, RT_NULL},
+#if (LCD_VERSION==2)
+    {"触摸屏校准", RT_NULL, function_calibration, RT_NULL},
+#endif
+    {"遥控器学习", RT_NULL, function_remote_study, RT_NULL},
+};
+
+
+void setting_ui(rtgui_workbench_t* workbench)
+{
+    rtgui_rect_t rect;
+
+    father_workbench = workbench;
+
+     /* add function view */
+    rtgui_widget_get_rect(RTGUI_WIDGET(workbench), &rect);
+    function_view = rtgui_list_view_create(function_list,
+                                           sizeof(function_list)/sizeof(struct rtgui_list_item),
+                                           &rect,
+										   RTGUI_LIST_VIEW_LIST);
+    rtgui_workbench_add_view(workbench, RTGUI_VIEW(function_view));
+    rtgui_view_show(RTGUI_VIEW(function_view), RT_FALSE);
 }

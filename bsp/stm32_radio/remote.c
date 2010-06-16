@@ -8,9 +8,12 @@
 | 2010-01-02     aozima       The bate version.
 | 2010-02-10     aozima       change printf string 中文 to english.
 | 2010-03-25     aozima       add remote_fn define.
+| 2010-06-16     aozima       add remote_study to ui.
 +----------------------------------------------------
 */
 
+#include <stdio.h>
+#include <string.h>
 #include <rtthread.h>
 #include <dfs_posix.h>
 #include <stm32f10x.h>
@@ -27,11 +30,17 @@
 #define remote_fn                "/resource/remote.txt"
 
 /* 红外模式 0:没启动,1:自学习,2:正常解码 */
-unsigned int rem_mode = 0;
+typedef enum
+{
+    remote_mode_disable,
+    remote_mode_study,
+    remote_mode_enable,
+}remote_mode_type;
+remote_mode_type rem_mode = remote_mode_disable;
 
-static unsigned int first_tick = 0;  /* 本次开始捕获的时间戳 */
+static unsigned int first_tick = 0;    /* 本次开始捕获的时间戳 */
 static unsigned int rx_count   = 0;    /* 本次捕获中捕获到的信号计数. */
-static unsigned short rm_code[remote_code_len_max];
+static unsigned short * rm_code = RT_NULL;
 
 /* 信号量对象*/
 static struct rt_semaphore sem_IR;
@@ -230,13 +239,13 @@ void rem_start(void)
                 if ( p_rem_code_src[0].len > 0 && p_rem_code_src[0].len < remote_code_len_max )
                 {
                     /* 设置工作模式为正常识别模式 */
-                    rem_mode = 2;
+                    rem_mode = remote_mode_enable;
                     printf("\r\ndecode succeed,The remote enable\r\n");
                 }
                 else
                 {
-                    /* 设置工作模式为正常识别模式 */
-                    rem_mode = 0;
+                    /* 设置工作模式为关闭模式 */
+                    rem_mode = remote_mode_disable;
                     printf("\r\nrem_codes decode fail,The remote disable\r\n");
                 }
             }
@@ -250,7 +259,7 @@ void rem_start(void)
     }
     else
     {
-        rem_mode = 0;
+        rem_mode = remote_mode_disable;
         printf("\r\nmalloc rem_codes[] fail!!!\r\nThe remote disable!");
     }
 }
@@ -372,7 +381,7 @@ void remote_isr(void)
             }
             break;
         default:
-            rem_mode = 0;/* 异常跳入,则关闭红外摇控 */
+            rem_mode = remote_mode_disable;/* 异常跳入,则关闭红外摇控 */
             break;
         }
         TIM_ClearITPendingBit(TIM5, TIM_IT_CC3);
@@ -402,7 +411,7 @@ void remote_isr(void)
             }
             break;
         default:
-            rem_mode = 0;/* 异常跳入,则关闭红外摇控 */
+            rem_mode = remote_mode_disable;/* 异常跳入,则关闭红外摇控 */
             break;
         }
         TIM_ClearITPendingBit(TIM5, TIM_IT_CC4);
@@ -419,16 +428,33 @@ void remote_isr(void)
     }
 }
 
-#include <finsh.h>
+#include <rtgui/rtgui.h>
+#include <rtgui/rtgui_system.h>
+#include <rtgui/widgets/workbench.h>
+#include <rtgui/widgets/view.h>
+
+#include "player_bg.h"
+
+static rtgui_view_t*           setting_view  = RT_NULL;
+static rtgui_workbench_t* father_workbench   = RT_NULL;
+
 /* 启动红外学习程序 */
-int rem_study(void)
+void remote_study_thread_entry(void * parameter)
 {
+    struct rtgui_event_command ecmd;
+
     unsigned int i;
 
     int fd,size;
-    char tmp_buf[ (remote_code_len_max+1)*7 ];
+    char * tmp_buf = RT_NULL;
 
-    rem_mode = 1;
+    tmp_buf = rt_malloc( (remote_code_len_max+1)*7 );
+    if(tmp_buf == RT_NULL) return;
+
+    RTGUI_EVENT_COMMAND_INIT(&ecmd);
+    ecmd.type = RTGUI_EVENT_PAINT;
+
+    rem_mode = remote_mode_study;
     rx_count = 0;
     printf("\r\nremote studing.....");
     fd = open(remote_fn,O_WRONLY | O_TRUNC,0);
@@ -439,7 +465,7 @@ int rem_study(void)
     else
     {
         printf("\r/resource/remote.txt create fail.\r\nabort.");
-        return -1;
+        return;
     }
 
     /* 学习6个键盘 */
@@ -448,10 +474,16 @@ int rem_study(void)
         unsigned int is_ok = 1;
         memset(rm_code,0,sizeof(rm_code));
         printf("\r\npress key %s",desc_key[i]);
+
+        //向UI发送消息
+        ecmd.command_id = PLAYER_REQUEST_REMOTE;
+        strncpy(ecmd.command_string,desc_key[i],RTGUI_NAME_MAX);
+        rtgui_thread_send(rt_thread_find("ply_ui"), &ecmd.parent, sizeof(ecmd));
+
         while( is_ok==1 )
         {
             /* 如果在200ms内有捕获到数据. */
-            if( (rem_mode==1) && (rt_tick_get()>first_tick+20) && (rx_count > 0) )
+            if( ( rem_mode== remote_mode_study ) && (rt_tick_get()>first_tick+20) && (rx_count > 0) )
             {
                 unsigned int a,rx_count_current;
                 char * p = tmp_buf;
@@ -522,7 +554,7 @@ int rem_study(void)
                 else
                 {
                     printf(" file write fail.\r\nabort.");
-                    return -1;
+                    return;
                 }
             }
             rt_thread_delay(1);
@@ -530,10 +562,166 @@ int rem_study(void)
     }//for( i=0; i<6; i++)
     close(fd);
     printf("\r\nremote study complete.The remote enable.\r\n");
-    rem_mode = 2;
-    return 0;
+
+    strcpy(ecmd.command_string,"done");
+    rtgui_thread_send(rt_thread_find("ply_ui"), &ecmd.parent, sizeof(ecmd));
+    rt_thread_delay(RT_TICK_PER_SECOND);
+    strcpy(ecmd.command_string,"exit");
+    rtgui_thread_send(rt_thread_find("ply_ui"), &ecmd.parent, sizeof(ecmd));
+
+    rem_mode = remote_mode_enable;
+
+    rt_free(tmp_buf);
+    return;
 }
-FINSH_FUNCTION_EXPORT(rem_study, rem_study);
+
+
+static unsigned int yy2 = 0;
+static rt_bool_t view_event_handler ( struct rtgui_widget* widget, struct rtgui_event* event )
+{
+    switch ( event->type )
+    {
+    case RTGUI_EVENT_PAINT:
+    {
+        struct rtgui_dc* dc;
+        struct rtgui_rect rect;
+        char* line;
+
+        line = rtgui_malloc(256);
+
+        //开始绘图
+        dc = rtgui_dc_begin_drawing ( widget );
+
+        if ( dc == RT_NULL )
+            return RT_FALSE;
+
+        //得到位置
+        rtgui_widget_get_rect ( widget, &rect );
+
+        /* fill background */
+        rtgui_dc_fill_rect(dc, &rect);
+
+        rect.y2 = rect.y1 + 18;
+        yy2 = rect.y2;
+
+        sprintf(line, "红外遥控学习程序");
+        rtgui_dc_draw_text(dc, line, &rect);
+
+        rect.y1 = rect.y2;
+        rect.y2 = rect.y1 + 18;
+        yy2 = rect.y2;
+
+        sprintf(line, "长按ENTER键返回");
+        rtgui_dc_draw_text(dc, line, &rect);
+
+        rtgui_dc_end_drawing ( dc );
+        rtgui_free(line);
+
+        return RT_FALSE;
+    }
+    case RTGUI_EVENT_COMMAND:
+    {
+        struct rtgui_dc* dc;
+        struct rtgui_rect rect;
+        char* line;
+
+        struct rtgui_event_command* ecmd = (struct rtgui_event_command*)event;
+//        rt_kprintf("cmd type:%d cmd id:%d cmd_str: %s",ecmd->type,ecmd->command_id,ecmd->command_string);
+        if( (strcmp(ecmd->command_string,"done")==0) || (strcmp(ecmd->command_string,"exit")==0))
+        {
+            if( strcmp(ecmd->command_string,"done")==0 )
+            {
+                line = rtgui_malloc(256);
+                dc = rtgui_dc_begin_drawing ( widget );
+                rtgui_widget_get_rect ( widget, &rect );
+                rect.y1 = yy2;
+                rect.y2 = rect.y1 + 18;
+                yy2 = rect.y2;
+                sprintf(line, "红外学习完成,已打开遥控功能");
+                rtgui_dc_draw_text(dc, line, &rect);
+                rtgui_dc_end_drawing ( dc );
+                rtgui_free(line);
+            }
+            else
+            {
+                rtgui_workbench_t* workbench;
+
+                workbench = RTGUI_WORKBENCH ( RTGUI_WIDGET ( setting_view )->parent );
+                rtgui_workbench_remove_view ( workbench, setting_view );
+
+                rtgui_view_destroy ( setting_view );
+                setting_view = RT_NULL;
+                return RT_TRUE;
+            }
+        }
+        else
+        {
+            line = rtgui_malloc(256);
+            dc = rtgui_dc_begin_drawing ( widget );
+            rtgui_widget_get_rect ( widget, &rect );
+            rect.y1 = yy2;
+            rect.y2 = rect.y1 + 18;
+            yy2 = rect.y2;
+
+            sprintf(line, "请按键:%s",ecmd->command_string);
+            rtgui_dc_draw_text(dc, line, &rect);
+            rtgui_dc_end_drawing ( dc );
+            rtgui_free(line);
+
+            return RT_TRUE;
+        }
+
+    }
+    case RTGUI_EVENT_KBD:
+    {
+        struct rtgui_event_kbd* ekbd;
+
+        ekbd = ( struct rtgui_event_kbd* ) event;
+
+        if ( ekbd->type == RTGUI_KEYDOWN && ekbd->key == RTGUIK_RETURN )
+        {
+            rtgui_workbench_t* workbench;
+
+            workbench = RTGUI_WORKBENCH ( RTGUI_WIDGET ( setting_view )->parent );
+            rtgui_workbench_remove_view ( workbench, setting_view );
+
+            rtgui_view_destroy ( setting_view );
+            setting_view = RT_NULL;
+            return RT_TRUE;
+        }
+        return RT_FALSE;
+    }
+    }
+    return rtgui_view_event_handler ( widget, event );
+}
+
+void remote_study_ui(rtgui_workbench_t* workbench)
+{
+    father_workbench = workbench;
+
+    setting_view = rtgui_view_create ( "setting_view" );
+    /* 指定视图的背景色 */
+    RTGUI_WIDGET_BACKGROUND ( RTGUI_WIDGET ( setting_view ) ) = green;
+    /* this view can be focused */
+    RTGUI_WIDGET ( setting_view )->flag |= RTGUI_WIDGET_FLAG_FOCUSABLE;
+
+    //设置服务函数
+    rtgui_widget_set_event_handler ( RTGUI_WIDGET ( setting_view ), view_event_handler );
+
+    /* 添加到父workbench中 */
+    rtgui_workbench_add_view ( father_workbench, setting_view );
+    /* 非模式方式显示视图 */
+    rtgui_view_show ( setting_view, RT_FALSE );
+
+    //启动学习线程
+    {
+        rt_thread_t remote_study_thread;
+        remote_study_thread = rt_thread_create("rm_study",
+                                               remote_study_thread_entry, RT_NULL,
+                                               2048, 30, 2);
+        if (remote_study_thread != RT_NULL)rt_thread_startup(remote_study_thread);
+    }
+}
 
 static struct rtgui_event_kbd kbd_event;
 static void remote_thread_entry(void *parameter)
@@ -571,6 +759,9 @@ static void remote_thread_entry(void *parameter)
 void remote_init(void)
 {
     rt_thread_t remote_thread;
+
+    rm_code = rt_malloc( remote_code_len_max*2 );
+    if (rm_code == RT_NULL) return;
 
     rt_sem_init(&sem_IR,"sem_IR", 0,RT_IPC_FLAG_FIFO);
 
