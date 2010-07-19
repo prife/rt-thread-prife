@@ -50,7 +50,7 @@ struct dfs_filesystem
 	rt_device_t dev_id;					/* Attached device */
 
 	char path[DFS_PATH_MAX + 1];			/* File system mount point */
-	struct dfs_filesystem_operation* ops;	/* Operations for file system type */
+	const struct dfs_filesystem_operation* ops;	/* Operations for file system type */
 	rt_uint32_t block_id;					/* Current block_id on attached device */
 
 	void *data;							/* Specific file system data */
@@ -65,7 +65,7 @@ struct dfs_partition
 	rt_sem_t lock;	
 };
 
-int dfs_register(struct dfs_filesystem_operation* ops);
+int dfs_register(const struct dfs_filesystem_operation* ops);
 struct dfs_filesystem* dfs_filesystem_lookup(const char *path);
 rt_err_t dfs_filesystem_get_partition(struct dfs_partition* part, rt_uint8_t* buf, rt_uint32_t pindex);
 
@@ -75,7 +75,7 @@ int dfs_mount(const char* device_name, const char* path,
 int dfs_unmount(const char *specialfile);
 
 /* extern variable */
-extern struct dfs_filesystem_operation* filesystem_operation_table[];
+extern const struct dfs_filesystem_operation* filesystem_operation_table[];
 extern struct dfs_filesystem filesystem_table[];
 
 extern char working_directory[];

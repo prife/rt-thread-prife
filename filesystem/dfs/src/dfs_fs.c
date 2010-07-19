@@ -30,7 +30,7 @@
 |               -1, failed
 +------------------------------------------------------------------------------
 */
-int dfs_register(struct dfs_filesystem_operation* ops)
+int dfs_register(const struct dfs_filesystem_operation* ops)
 {
     int index, result;
 
@@ -69,7 +69,7 @@ err:
     return result;
 }
 
-/*
+/* 
 +------------------------------------------------------------------------------
 | Function    : dfs_filesystem_lookup
 +------------------------------------------------------------------------------
@@ -109,6 +109,18 @@ struct dfs_filesystem* dfs_filesystem_lookup(const char *path)
     return fs;
 }
 
+/* 
++------------------------------------------------------------------------------
+| Function    : dfs_filesystem_get_partition
++------------------------------------------------------------------------------
+| Description : get partition in the buffer data
+|
+| Parameters  : part, the returned partition information
+|               buf, the buffer to save partition data
+|               pindex, the partion index
+| Returns     : RT_EOK on successful, -RT_ERROR on failed
++------------------------------------------------------------------------------
+*/
 rt_err_t dfs_filesystem_get_partition(struct dfs_partition* part, rt_uint8_t* buf, rt_uint32_t pindex)
 {
 #define DPT_ADDRESS		0x1be		/* device partition offset in Boot Sector */
@@ -193,10 +205,10 @@ rt_err_t dfs_filesystem_get_partition(struct dfs_partition* part, rt_uint8_t* bu
 +------------------------------------------------------------------------------
 */
 int dfs_mount(const char* device_name, const char* path,
-              const char* filesystemtype, unsigned long rwflag, const
+              const char* type, unsigned long rwflag, const
               void* data)
 {
-    struct dfs_filesystem_operation* ops;
+    const struct dfs_filesystem_operation* ops;
     struct dfs_filesystem* fs;
     char *fullpath=RT_NULL;
 #ifdef DFS_USING_WORKDIR
@@ -218,7 +230,7 @@ int dfs_mount(const char* device_name, const char* path,
 	dfs_lock();
     for ( index = 0; index < DFS_FILESYSTEM_TYPES_MAX; index++ )
     {
-        if (strcmp(filesystem_operation_table[index]->name, filesystemtype) == 0)break;
+        if (strcmp(filesystem_operation_table[index]->name, type) == 0)break;
     }
 
     /* can't find filesystem */
@@ -325,7 +337,7 @@ err1:
     return -1;
 }
 
-/*
+/* 
 +------------------------------------------------------------------------------
 | Function    : dfs_unmount
 +------------------------------------------------------------------------------
@@ -384,3 +396,4 @@ err1:
 
     return -1;
 }
+

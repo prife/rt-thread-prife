@@ -22,7 +22,7 @@
 #include <string.h>
 
 /* Global variables */
-struct dfs_filesystem_operation* filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX + 1];
+const struct dfs_filesystem_operation* filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX + 1];
 struct dfs_filesystem filesystem_table[DFS_FILESYSTEMS_MAX + 1];
 
 /* device filesystem lock */
@@ -52,22 +52,21 @@ void dfs_init()
 	int index;
 
 	/* clear filesystem operations table */
-	for (index = 0; index < DFS_FILESYSTEM_TYPES_MAX + 1; index++) 
-		filesystem_operation_table[index] = RT_NULL;
-
-	/* create device filesystem lock */
-	rt_mutex_init(&dlock, "dlock", RT_IPC_FLAG_FIFO);
+	rt_memset(filesystem_operation_table, 0, sizeof(filesystem_operation_table));
 
 	/* clear filesystem table */
 	rt_memset(filesystem_table, 0, sizeof(filesystem_table));
+
+	/* clean fd table */
+	rt_memset(fd_table, 0, sizeof(fd_table));
+
+	/* create device filesystem lock */
+	rt_mutex_init(&dlock, "fs_lock", RT_IPC_FLAG_FIFO);
 
 #ifdef DFS_USING_WORKDIR	
 	/* set current working directory */
 	strcpy(working_directory, "/");
 #endif
-
-	/* clean fd table */
-	rt_memset(fd_table, 0, sizeof(fd_table));
 }
 
 void dfs_lock()
@@ -82,3 +81,4 @@ void dfs_unlock()
 {
 	rt_mutex_release(&dlock);
 }
+
