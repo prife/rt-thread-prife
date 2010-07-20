@@ -228,7 +228,13 @@ void rt_hw_board_init(void)
 
     /* Console Initialization*/
     rt_hw_usart_init();
+#if STM32_CONSOLE_USART == 1
     rt_console_set_device("uart1");
+#elif STM32_CONSOLE_USART == 2
+    rt_console_set_device("uart2");
+#elif STM32_CONSOLE_USART == 3
+    rt_console_set_device("uart3");
+#endif
 
     rt_kprintf("\r\n\r\nSystemInit......\r\n");
 

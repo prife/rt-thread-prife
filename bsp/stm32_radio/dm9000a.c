@@ -153,11 +153,11 @@ void rt_dm9000_isr()
     last_io = DM9000_IO;
 
     /* Disable all interrupts */
-    dm9000_io_write(DM9000_IMR, IMR_PAR);
+    // dm9000_io_write(DM9000_IMR, IMR_PAR);
 
     /* Got DM9000 interrupt status */
-    int_status = dm9000_io_read(DM9000_ISR);               /* Got ISR */
-    dm9000_io_write(DM9000_ISR, int_status);    /* Clear ISR status */
+    int_status = dm9000_io_read(DM9000_ISR);		/* Got ISR */
+    dm9000_io_write(DM9000_ISR, int_status);    	/* Clear ISR status */
 
     DM9000_TRACE("dm9000 isr: int status %04x\n", int_status);
 
@@ -176,7 +176,9 @@ void rt_dm9000_isr()
     if (int_status & ISR_PRS)
     {
         /* disable receive interrupt */
+		dm9000_io_write(DM9000_IMR, IMR_PAR);
         dm9000_device.imr_all = IMR_PAR | IMR_PTM;
+		dm9000_io_write(DM9000_IMR, dm9000_device.imr_all);
 
         /* a frame has been received */
         eth_device_ready(&(dm9000_device.parent));
@@ -210,7 +212,7 @@ void rt_dm9000_isr()
     }
 
     /* Re-enable interrupt mask */
-    dm9000_io_write(DM9000_IMR, dm9000_device.imr_all);
+    // dm9000_io_write(DM9000_IMR, dm9000_device.imr_all);
 
     DM9000_IO = last_io;
 }
@@ -497,7 +499,6 @@ __error_retry:
                     len -= 2;
                 }
             }
-            DM9000_TRACE("\n");
         }
         else
         {
@@ -549,6 +550,9 @@ __error_retry:
     }
     else
     {
+		/* clear packet received latch status */
+	    dm9000_io_write(DM9000_ISR, ISR_PTS);
+
         /* restore receive interrupt */
         dm9000_device.imr_all = IMR_PAR | IMR_PTM | IMR_PRM;
         dm9000_io_write(DM9000_IMR, dm9000_device.imr_all);

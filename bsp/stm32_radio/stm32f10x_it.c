@@ -270,14 +270,13 @@ void EXTI4_IRQHandler(void)
 	/* enter interrupt */
 	rt_interrupt_enter();
 
-	rt_dm9000_isr();
-
-	/* Clear the Key Button EXTI line pending bit */
+	/* Clear the EXTI4 line pending bit */
 	EXTI_ClearITPendingBit(EXTI_Line4);
+
+	rt_dm9000_isr();
 
 	/* leave interrupt */
 	rt_interrupt_leave();
-	rt_hw_interrupt_thread_switch();
 #endif
 }
 
@@ -318,7 +317,6 @@ void DMA1_Channel2_IRQHandler(void)
 
     /* leave interrupt */
     rt_interrupt_leave();
-    rt_hw_interrupt_thread_switch();
 #endif
 }
 
@@ -395,7 +393,6 @@ void DMA1_Channel6_IRQHandler(void)
 
     /* leave interrupt */
     rt_interrupt_leave();
-    rt_hw_interrupt_thread_switch();
 #endif
 }
 
@@ -421,7 +418,6 @@ void EXTI9_5_IRQHandler(void)
 
 	/* leave interrupt */
 	rt_interrupt_leave();
-	rt_hw_interrupt_thread_switch();
 #endif
 }
 
@@ -443,7 +439,6 @@ void USART1_IRQHandler(void)
 
     /* leave interrupt */
     rt_interrupt_leave();
-    rt_hw_interrupt_thread_switch();
 #endif
 }
 
@@ -466,7 +461,6 @@ void USART2_IRQHandler(void)
 
     /* leave interrupt */
     rt_interrupt_leave();
-    rt_hw_interrupt_thread_switch();
 #endif
 }
 
@@ -489,7 +483,6 @@ void USART3_IRQHandler(void)
 
     /* leave interrupt */
     rt_interrupt_leave();
-    rt_hw_interrupt_thread_switch();
 #endif
 }
 
