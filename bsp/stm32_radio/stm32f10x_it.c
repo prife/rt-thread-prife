@@ -267,14 +267,17 @@ void EXTI4_IRQHandler(void)
 #ifdef RT_USING_LWIP
 	extern void rt_dm9000_isr(void);
 
-	/* enter interrupt */
-	rt_interrupt_enter();
-
 	/* Clear the EXTI4 line pending bit */
 	EXTI_ClearITPendingBit(EXTI_Line4);
 
-	rt_dm9000_isr();
-
+	/* enter interrupt */
+	rt_interrupt_enter();
+	
+	while(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_4))
+	{
+		rt_dm9000_isr();
+	}
+	
 	/* leave interrupt */
 	rt_interrupt_leave();
 #endif
