@@ -811,11 +811,6 @@
               <FilePath>..\..\filesystem\dfs\src\dfs_util.c</FilePath>
             </File>
             <File>
-              <FileName>dfs_cache.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\src\dfs_cache.c</FilePath>
-            </File>
-            <File>
               <FileName>dfs_fs.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\filesystem\dfs\src\dfs_fs.c</FilePath>
@@ -834,61 +829,6 @@
               <FileName>dfs_posix.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\filesystem\dfs\src\dfs_posix.c</FilePath>
-            </File>
-            <File>
-              <FileName>plibc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\base\plibc.c</FilePath>
-            </File>
-            <File>
-              <FileName>efs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\base\efs.c</FilePath>
-            </File>
-            <File>
-              <FileName>extract.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\base\extract.c</FilePath>
-            </File>
-            <File>
-              <FileName>partition.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\base\partition.c</FilePath>
-            </File>
-            <File>
-              <FileName>ui.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\ui.c</FilePath>
-            </File>
-            <File>
-              <FileName>dir.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\dir.c</FilePath>
-            </File>
-            <File>
-              <FileName>fat.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\fat.c</FilePath>
-            </File>
-            <File>
-              <FileName>file.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\file.c</FilePath>
-            </File>
-            <File>
-              <FileName>fs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\fs.c</FilePath>
-            </File>
-            <File>
-              <FileName>ls.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\ls.c</FilePath>
-            </File>
-            <File>
-              <FileName>time.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\time.c</FilePath>
             </File>
           </Files>
         </Group>
