@@ -192,7 +192,7 @@ SD_Error SD_Init(void)
 SD_Error SD_PowerON(void)
 {
   SD_Error errorstatus = SD_OK;
-  uint32_t response = 0, count = 0;
+  uint32_t response = 0, count = 0, i = 0;
   bool validvoltage = FALSE;
   uint32_t SDType = SD_STD_CAPACITY;
 
@@ -219,9 +219,12 @@ SD_Error SD_PowerON(void)
   SDIO_CmdInitStructure.SDIO_Response = SDIO_Response_No;
   SDIO_CmdInitStructure.SDIO_Wait = SDIO_Wait_No;
   SDIO_CmdInitStructure.SDIO_CPSM = SDIO_CPSM_Enable;
-  SDIO_SendCommand(&SDIO_CmdInitStructure);
 
-  errorstatus = CmdError();
+  for(i = 0;i < 74; i++)
+  {
+    SDIO_SendCommand(&SDIO_CmdInitStructure);
+    errorstatus = CmdError();
+  }
 
   if (errorstatus != SD_OK)
   {
@@ -527,7 +530,8 @@ SD_Error SD_GetCardInfo(SD_CardInfo *cardinfo)
   cardinfo->SD_csd.DSRImpl = (tmp & 0x10) >> 4;
   cardinfo->SD_csd.Reserved2 = 0; /* Reserved */
 
-  if ((CardType == SDIO_STD_CAPACITY_SD_CARD_V1_1) || (CardType == SDIO_STD_CAPACITY_SD_CARD_V2_0))
+  if ((CardType == SDIO_STD_CAPACITY_SD_CARD_V1_1) || (CardType == SDIO_STD_CAPACITY_SD_CARD_V2_0) ||
+  	(CardType == SDIO_MULTIMEDIA_CARD))
   {
     cardinfo->SD_csd.DeviceSize = (tmp & 0x03) << 10;
 
@@ -2798,6 +2802,11 @@ static SD_Error FindSCR(uint16_t rca, uint32_t *pscr)
   SDIO_DataInitStructure.SDIO_DPSM = SDIO_DPSM_Enable;
   SDIO_DataConfig(&SDIO_DataInitStructure);
 
+  /* make a delay */
+  {
+    volatile uint32_t delay;
+    for(delay = 0; delay < 20; delay++);
+  }
 
   /* Send ACMD51 SD_APP_SEND_SCR with argument as 0 */
   SDIO_CmdInitStructure.SDIO_Argument = 0x0;
@@ -3123,7 +3132,24 @@ static rt_size_t rt_sdcard_write (rt_device_t dev, rt_off_t pos, const void* buf
 
 static rt_err_t rt_sdcard_control(rt_device_t dev, rt_uint8_t cmd, void *args)
 {
-	return RT_EOK;
+    RT_ASSERT(dev != RT_NULL);
+
+    if (cmd == RT_DEVICE_CTRL_BLK_GETGEOME)
+    {
+        struct rt_device_blk_geometry *geometry;
+
+        geometry = (struct rt_device_blk_geometry *)args;
+        if (geometry == RT_NULL) return -RT_ERROR;
+
+        geometry->bytes_per_sector = 512;
+        geometry->block_size = SDCardInfo.CardBlockSize;
+		if (CardType == SDIO_HIGH_CAPACITY_SD_CARD)
+			geometry->sector_count = (SDCardInfo.SD_csd.DeviceSize + 1)  * 1024;
+		else
+        	geometry->sector_count = SDCardInfo.CardCapacity/SDCardInfo.CardBlockSize;
+    }
+
+    return RT_EOK;
 }
 
 void rt_hw_sdcard_init()
@@ -3171,6 +3197,7 @@ void rt_hw_sdcard_init()
 		rt_free(sector);
 
 		/* register sdcard device */
+		sdcard_device.type  = RT_Device_Class_Block;
 		sdcard_device.init 	= rt_sdcard_init;
 		sdcard_device.open 	= rt_sdcard_open;
 		sdcard_device.close = rt_sdcard_close;
