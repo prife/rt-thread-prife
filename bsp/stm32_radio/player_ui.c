@@ -682,6 +682,10 @@ static rt_bool_t home_view_event_handler(struct rtgui_widget* widget, struct rtg
         {
 			struct play_item *item = RT_NULL;
 
+			/* if it's radio mode, set next mode to stop */
+			if (player_mode == PLAYER_PLAY_RADIO)
+				next_step = PLAYER_STEP_STOP;
+
 			/* set player mode */
 			player_mode = PLAYER_STOP;
 
