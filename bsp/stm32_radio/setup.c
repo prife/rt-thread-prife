@@ -1,11 +1,14 @@
 #include <rtthread.h>
-#include "board.h"
-#include "setup.h"
 #include <dfs_posix.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "board.h"
+#include "setup.h"     // RADIO²ÎÊýÅäÖÃ
+#include "drawpad.h"   // ¼òµ¥µÄ»æÍ¼°å
+#include "utils.h"
 
 #define setup_fn    "/setup.ini"
 
@@ -17,37 +20,6 @@ static const char  kn_touch_min_x[] = "touch_min_x";
 static const char  kn_touch_max_x[] = "touch_max_x";
 static const char  kn_touch_min_y[] = "touch_min_y";
 static const char  kn_touch_max_y[] = "touch_max_y";
-
-static rt_uint32_t read_line(int fd, char* line, rt_uint32_t line_size)
-{
-    char *pos, *next;
-    rt_uint32_t length;
-
-    length = read(fd, line, line_size);
-    if (length > 0)
-    {
-        pos = strstr(line, "\r\n");
-        if (pos == RT_NULL)
-        {
-            pos = strstr(line, "\n");
-            next = pos ++;
-        }
-        else next = pos + 2;
-
-        if (pos != RT_NULL)
-        {
-            *pos = '\0';
-
-            /* move back */
-            lseek(fd, -(length - (next - line)), SEEK_CUR);
-
-            length = pos - line;
-        }
-        else length = 0;
-    }
-
-    return length;
-}
 
 static void load_default(void)
 {
@@ -267,11 +239,17 @@ static void function_remote_study(void * paramter)
     remote_study_ui(father_workbench);
 }
 
+static void function_drawpad(void * paramter)
+{
+    function_sketchpad(father_workbench);
+}
+
 static const struct rtgui_list_item function_list[] =
 {
     {"·µ»ØÉÏ¼¶²Ëµ¥", RT_NULL, function_action_return, RT_NULL},
 #if (LCD_VERSION==2)
     {"´¥ÃþÆÁÐ£×¼", RT_NULL, function_calibration, RT_NULL},
+    {"´¥ÃþÆÁ»­°å", RT_NULL, function_drawpad, RT_NULL},
 #endif
     {"Ò£¿ØÆ÷Ñ§Ï°", RT_NULL, function_remote_study, RT_NULL},
 };
@@ -283,12 +261,12 @@ void setting_ui(rtgui_workbench_t* workbench)
 
     father_workbench = workbench;
 
-     /* add function view */
+    /* add function view */
     rtgui_widget_get_rect(RTGUI_WIDGET(workbench), &rect);
     function_view = rtgui_list_view_create(function_list,
                                            sizeof(function_list)/sizeof(struct rtgui_list_item),
                                            &rect,
-										   RTGUI_LIST_VIEW_LIST);
+                                           RTGUI_LIST_VIEW_LIST);
     rtgui_workbench_add_view(workbench, RTGUI_VIEW(function_view));
     rtgui_view_show(RTGUI_VIEW(function_view), RT_FALSE);
 }
