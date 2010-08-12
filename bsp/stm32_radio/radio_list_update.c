@@ -17,8 +17,8 @@
 
 /* */
 #define RADIO_FN                    "/radio.pls"
-//#define RADIO_LIST_UPDATE_URL       "http://radio.rt-thread.org/radio.pls"
-#define RADIO_LIST_UPDATE_URL       "http://www.aozima.com/radio/radio.pls"
+#define RADIO_LIST_UPDATE_URL       "http://radio.rt-thread.org/radio.pls"
+//#define RADIO_LIST_UPDATE_URL       "http://www.aozima.com/radio/radio.pls"
 /* */
 
 /* */
