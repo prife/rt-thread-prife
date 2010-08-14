@@ -28,7 +28,7 @@ struct rtgui_dc_hw
 	rt_bool_t visible;
 
 	/* display driver */
-	struct rtgui_graphic_driver* device;
+	const struct rtgui_graphic_driver* device;
 };
 
 /* create a hardware dc */

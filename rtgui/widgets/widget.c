@@ -10,6 +10,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2009-10-04     Bernard      first version
+ * 2010-06-26     Bernard      add user_data to widget structure
  */
 #include <rtgui/widgets/widget.h>
 #include <rtgui/widgets/window.h>
@@ -30,7 +31,9 @@ static void _rtgui_widget_constructor(rtgui_widget_t *widget)
 	widget->gc.background = default_background;
 	widget->gc.font = rtgui_font_default();
 	widget->gc.textalign = RTGUI_ALIGN_LEFT | RTGUI_ALIGN_TOP;
+#ifndef RTGUI_USING_SMALL_SIZE
 	widget->align = RTGUI_ALIGN_LEFT | RTGUI_ALIGN_TOP;
+#endif
 
 	/* set parent and toplevel root */
 	widget->parent			= RT_NULL;
@@ -239,37 +242,31 @@ void rtgui_widget_set_oncommand(rtgui_widget_t* widget, rtgui_event_handler_ptr 
  */
 void rtgui_widget_focus(rtgui_widget_t *widget)
 {
-	rtgui_widget_t *focused;
 	rtgui_container_t *parent;
 
 	RT_ASSERT(widget != RT_NULL);
 
-	if (!widget->parent || !RTGUI_WIDGET_IS_FOCUSABLE(widget) || !RTGUI_WIDGET_IS_ENABLE(widget))
+	if (!widget->parent || !widget->toplevel) return;
+	if (!RTGUI_WIDGET_IS_FOCUSABLE(widget) || !RTGUI_WIDGET_IS_ENABLE(widget))
 		return;
 
 	/* set widget as focused */
 	widget->flag |= RTGUI_WIDGET_FLAG_FOCUS;
 
-	/* get parent container */
-	parent = RTGUI_CONTAINER(widget->parent);
+	/* get root parent container and old focused widget */
+	parent = RTGUI_CONTAINER(widget->toplevel);
+	if (parent->focused == widget) return ; /* it's the same focused widget */
 
-	/* get old focused widget */
-	focused = parent->focused;
-	if (focused == widget) return ; /* it's the same focused widget */
-
-	if (focused != RT_NULL)
-		rtgui_widget_unfocus(focused);
+	/* unfocused the old widget */
+	if (parent->focused != RT_NULL)	rtgui_widget_unfocus(parent->focused);
 
 	/* set widget as focused widget in parent link */
-	parent->focused = widget;
-	while (RTGUI_WIDGET(parent)->parent != RT_NULL)
+	parent = RTGUI_CONTAINER(widget->parent);
+	do 
 	{
-		parent = RTGUI_CONTAINER(RTGUI_WIDGET(parent)->parent);
 		parent->focused = widget;
-
-		/* if the parent is hide, break it */
-		if (RTGUI_WIDGET_IS_HIDE(RTGUI_WIDGET(parent))) break;
-	}
+		parent = RTGUI_CONTAINER(RTGUI_WIDGET(parent)->parent);
+	} while ((parent != RT_NULL) && !RTGUI_WIDGET_IS_HIDE(RTGUI_WIDGET(parent)));
 
 	/* invoke on focus in call back */
 	if (widget->on_focus_in != RT_NULL)

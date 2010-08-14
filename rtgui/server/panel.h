@@ -47,6 +47,9 @@ struct rtgui_panel
 
 	/* the workbench manager thread */
 	rt_thread_t wm_thread;
+
+	/* is focusable */
+	rt_bool_t is_focusable;
 };
 
 /* find panel by name */
