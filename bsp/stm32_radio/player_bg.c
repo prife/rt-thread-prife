@@ -1,6 +1,8 @@
+#include "mp3.h"
+#include "wav.h"
 #include "player_bg.h"
 #include "player_ui.h"
-#include "mp3.h"
+#include "netbuffer.h"
 
 #include <string.h>
 
@@ -82,6 +84,17 @@ void player_thread(void* parameter)
 					is_playing = RT_TRUE;
 					player_notify_play();
 					ice_mp3(request.fn, request.station);
+					/* notfiy net buffer worker to stop */
+					net_buf_stop_job();
+					player_notify_stop();
+					is_playing = RT_FALSE;
+				}
+				else if (strstr(request.fn, "douban://") == request.fn)
+				{
+					is_playing = RT_TRUE;
+					player_notify_play();
+					doubarn_radio();
+
 					/* notfiy net buffer worker to stop */
 					net_buf_stop_job();
 					player_notify_stop();

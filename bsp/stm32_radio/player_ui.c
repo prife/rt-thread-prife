@@ -343,6 +343,18 @@ static void player_play_item(struct play_item* item)
 		/* send play request */
 		player_radio_req(item->fn, item->title);
 	}
+	else if (type == MEDIA_DOUBAN)
+	{
+		/* set title and information */
+		rt_strncpy(tinfo.title, "豆瓣网络电台", sizeof(tinfo.title));
+		tinfo.position = 0;
+		tinfo.duration = 320 * 1024; /* 320 k */
+
+		/* set play mode */
+		player_mode = PLAYER_PLAY_RADIO;
+		/* send play request */
+		player_radio_req(item->fn, item->title);
+	}
 	else
 	{
 		/* set title and information */
@@ -390,6 +402,18 @@ static void function_play_radio(void* parameter)
         }
 		else return; /* not play radio station */
     }
+
+	player_play_item(play_list_start());
+	player_update_list();
+
+	/* show home view */
+	rtgui_view_show(home_view, RT_FALSE);
+}
+
+static void function_douban_radio(void* parameter)
+{
+	play_list_clear();
+	play_list_append_radio("douban://default", "豆瓣电台");
 
 	player_play_item(play_list_start());
 	player_update_list();
@@ -531,7 +555,8 @@ static void function_rti(void* parameter)
 static const struct rtgui_list_item function_list[] =
 {
     {"返回播放器", RT_NULL, function_player, RT_NULL},
-    {"选择电台", RT_NULL, function_play_radio, RT_NULL},
+	{"豆瓣电台", RT_NULL, function_douban_radio, RT_NULL},
+    {"其他电台", RT_NULL, function_play_radio, RT_NULL},
     {"更新电台", RT_NULL, function_radio_list_update, RT_NULL},
     {"播放文件", RT_NULL, function_filelist, RT_NULL},
     {"浏览图片", RT_NULL, function_show_picure, RT_NULL},

@@ -9,6 +9,7 @@
 #define MEDIA_WMA		2
 #define MEDIA_M3U		3
 #define MEDIA_RADIO		4
+#define MEDIA_DOUBAN	5
 
 #define GBK2UNI_FILE "/resource/gbk2uni.tbl"
 #define UNI2GBK_FILE "/resource/uni2gbk.tbl"

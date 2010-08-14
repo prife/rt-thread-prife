@@ -3,13 +3,13 @@
  */
 #include "http.h"
 
+#include <ctype.h>
 #include <dfs_posix.h>
-
 #include <lwip/sockets.h>
 #include <lwip/netdb.h>
 
-const char _http_get[] = "GET %s HTTP/1.0\r\nHost: %s:%d\r\nUser-Agent: RT-Thread HTTP Agent\r\n\r\n";
-const char _shoutcast_get[] = "GET %s HTTP/1.0\r\nHost: %s:%d\r\nUser-Agent: RT-Thread HTTP Agent\r\nIcy-MetaData: 1\r\nConnection: close\r\n\r\n";
+const char _http_get[] = "GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: RT-Thread HTTP Agent\r\nCookie: name=\"RT-Thread\"; ac=\"1281620086\"\r\n\r\n";
+const char _shoutcast_get[] = "GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: RT-Thread HTTP Agent\r\nIcy-MetaData: 1\r\nConnection: close\r\n\r\n";
 
 extern long int strtol(const char *nptr, char **endptr, int base);
 
@@ -229,12 +229,12 @@ static int http_connect(struct http_session* session,
 
 		buf = rt_malloc (512);
 		if (*url)
-			length = rt_snprintf(buf, 512, _http_get, url, host_addr, server->sin_port);
+			length = rt_snprintf(buf, 512, _http_get, url, host_addr);
 		else
-			length = rt_snprintf(buf, 512, _http_get, "/", host_addr, server->sin_port);
+			length = rt_snprintf(buf, 512, _http_get, "/", host_addr);
 		
 		rc = send(peer_handle, buf, length, 0);
-		rt_kprintf("HTTP request:\n%s", buf);
+		// rt_kprintf("HTTP request:\n%s", buf);
 		
 		/* release buffer */
 		rt_free(buf);
@@ -247,7 +247,7 @@ static int http_connect(struct http_session* session,
 
 		// read a line from the header information.
 		rc = http_read_line( peer_handle, mimeBuffer, 100 );
-		rt_kprintf(">> %s\n", mimeBuffer);
+		// rt_kprintf(">> %s\n", mimeBuffer);
 
 		if ( rc < 0 ) return rc;
 
@@ -399,9 +399,9 @@ static int shoutcast_connect(struct shoutcast_session* session,
 
 		buf = rt_malloc (512);
 		if (*url)
-			length = rt_snprintf(buf, 512, _shoutcast_get, url, host_addr, ntohs(server->sin_port));
+			length = rt_snprintf(buf, 512, _shoutcast_get, url, host_addr);
 		else
-			length = rt_snprintf(buf, 512, _shoutcast_get, "/", host_addr, ntohs(server->sin_port));
+			length = rt_snprintf(buf, 512, _shoutcast_get, "/", host_addr);
 
 		rc = send(peer_handle, buf, length, 0);
 		rt_kprintf("SHOUTCAST request:\n%s", buf);

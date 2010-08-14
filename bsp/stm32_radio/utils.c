@@ -58,6 +58,9 @@ int media_type(const char* fn)
 		strstr(fn, "HTTP://") != RT_NULL)
 		return MEDIA_RADIO;
 
+	if (strstr(fn, "douban://") != RT_NULL)
+		return MEDIA_DOUBAN;
+
 	if (strstr(fn, ".mp3") != RT_NULL ||
 			strstr(fn, ".MP3") != RT_NULL)
 		return MEDIA_MP3;

@@ -56,6 +56,7 @@ void radio_rtgui_init(void)
     rect.x2 = 240;
     rect.y2 = 25;
     rtgui_panel_register("info", &rect);
+	rtgui_panel_set_nofocused("info");
 
     /* register main panel */
     rect.x1 = 0;

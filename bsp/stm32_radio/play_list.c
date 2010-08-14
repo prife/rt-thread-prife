@@ -1,8 +1,9 @@
-#include "play_list.h"
-#include "player_ui.h"
 #include "mp3.h"
 #include "utils.h"
+#include "play_list.h"
+#include "player_ui.h"
 
+#include <stdlib.h>
 #include <rtthread.h>
 #include <dfs_posix.h>
 
@@ -26,6 +27,9 @@ void play_list_clear()
     play_list = RT_NULL;
 
     play_list_size = 0;
+	
+	/* initalize random feed */
+	srand(rt_tick_get());
 }
 
 struct play_item *play_list_start()
@@ -57,7 +61,7 @@ struct play_item* play_list_next(int mode)
 
 	if (mode == PLAY_LIST_RANDOM)
 	{
-		play_item_current = rand(rt_tick_get()) % play_list_size;
+		play_item_current = rand() % play_list_size;
 		return &play_list[play_item_current];
 	}
 	else if (mode == PLAY_LIST_REPEAT)
@@ -80,7 +84,7 @@ struct play_item* play_list_prev(int mode)
 
 	if (mode == PLAY_LIST_RANDOM)
 	{
-		play_item_current = rand(rt_tick_get()) % play_list_size;
+		play_item_current = rand() % play_list_size;
 		return &play_list[play_item_current];
 	}
 	else if (mode == PLAY_LIST_REPEAT)

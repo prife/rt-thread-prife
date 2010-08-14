@@ -11,7 +11,7 @@ static rt_err_t wav_tx_done(rt_device_t dev, void *buffer)
 	return RT_EOK;
 }
 
-void wav(char* filename)
+void wav(const char* filename)
 {
     int fd;
 	rt_size_t block_size;

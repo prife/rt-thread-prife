@@ -242,6 +242,7 @@ int mp3_decoder_run(struct mp3_decoder* decoder)
 		if (decoder->frame_info.samprate != current_sample_rate)
 		{
 			current_sample_rate = decoder->frame_info.samprate;
+			// rt_kprintf("samle rate: %d\n", current_sample_rate);
 			rt_device_control(decoder->snd_device, CODEC_CMD_SAMPLERATE, &current_sample_rate);
 		}
 
@@ -625,5 +626,70 @@ void ice_mp3(const char* url, const char* station)
 	}
 }
 FINSH_FUNCTION_EXPORT(ice_mp3, shoutcast mp3 decode test);
+
+/* douban radio */
+#include "douban_radio.h"
+static rt_size_t doubarn_radio_fetch(rt_uint8_t* ptr, rt_size_t len, void* parameter)
+{
+	struct douban_radio* douban = (struct douban_radio*)parameter;
+	RT_ASSERT(douban != RT_NULL);
+
+	return douban_radio_read(douban, ptr, len);
+}
+
+static void doubarn_radio_connection_close(void* parameter)
+{
+	struct douban_radio* douban = (struct douban_radio*)parameter;
+	RT_ASSERT(douban != RT_NULL);
+
+	douban_radio_close(douban);
+}
+
+rt_size_t douban_radio_data_fetch(void* parameter, rt_uint8_t *buffer, rt_size_t length)
+{
+	return net_buf_read(buffer, length);
+}
+
+void doubarn_radio()
+{
+    struct douban_radio* douban;
+	struct mp3_decoder* decoder;
+	extern rt_bool_t is_playing;
+
+	is_playing = RT_TRUE;
+
+	player_notify_info("连接豆瓣中...");
+	douban = douban_radio_open();
+	if (douban != RT_NULL)
+	{
+		player_set_title("豆瓣电台");
+		player_notify_info("连接成功，缓冲中...");
+		/* start a job to netbuf worker */
+		if (net_buf_start_job(doubarn_radio_fetch, 
+			doubarn_radio_connection_close, (void*)douban) == 0)
+		{
+			decoder = mp3_decoder_create();
+			if (decoder != RT_NULL)
+			{
+				decoder->fetch_data = douban_radio_data_fetch;
+				decoder->fetch_parameter = RT_NULL;
+
+				current_offset = 0;
+				while (mp3_decoder_run(decoder) != -1);
+
+				/* delete decoder object */
+				mp3_decoder_delete(decoder);
+			}
+			douban = RT_NULL;
+		}
+		else
+		{
+			/* start a job failed, close session */
+			douban_radio_close(douban);
+			douban = RT_NULL;
+		}
+	}
+}
+FINSH_FUNCTION_EXPORT(doubarn_radio, douban radio test);
 
 #endif
