@@ -176,7 +176,11 @@
 #define TCP_QUEUE_OOSEQ             1
 
 /* TCP Maximum segment size. */
+#ifdef RT_LWIP_TCP_MSS
+#define TCP_MSS						RT_LWIP_TCP_MSS
+#else
 #define TCP_MSS                     1024
+#endif
 
 /* TCP sender buffer space (bytes). */
 #ifdef RT_LWIP_TCP_SND_BUF
@@ -218,7 +222,11 @@
 #define TCPIP_THREAD_STACKSIZE      4096
 #endif
 #define TCPIP_THREAD_NAME           "tcpip"
+#ifdef RT_DEFAULT_TCP_RECVMBOX_SIZE
+#define DEFAULT_TCP_RECVMBOX_SIZE   RT_DEFAULT_TCP_RECVMBOX_SIZE
+#else
 #define DEFAULT_TCP_RECVMBOX_SIZE   10
+#endif
 
 /* ---------- ARP options ---------- */
 #define LWIP_ARP                    1
