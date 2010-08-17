@@ -55,6 +55,7 @@ File 1,1,<.\utils.c><utils.c>
 File 1,1,<.\drawpad.c><drawpad.c>
 File 1,1,<.\JSON_parser.c><JSON_parser.c>
 File 1,1,<.\douban_radio.c><douban_radio.c>
+File 1,1,<.\douban_channel.c><douban_channel.c>
 File 2,1,<..\..\src\clock.c><clock.c>
 File 2,1,<..\..\src\idle.c><idle.c>
 File 2,1,<..\..\src\ipc.c><ipc.c>
@@ -263,7 +264,7 @@ Options 1,0,0  // Target 'RT-Thread STM32 Radio'
  OutName (rtthread-stm32)
  GenApp=1
  GenLib=0
- GenHex=0
+ GenHex=1
  Debug=1
  Browse=0
  LstDir (.\obj\)

@@ -650,7 +650,7 @@ rt_size_t douban_radio_data_fetch(void* parameter, rt_uint8_t *buffer, rt_size_t
 	return net_buf_read(buffer, length);
 }
 
-void doubarn_radio()
+void doubarn_radio(const char* channel, const char* station)
 {
     struct douban_radio* douban;
 	struct mp3_decoder* decoder;
@@ -659,10 +659,10 @@ void doubarn_radio()
 	is_playing = RT_TRUE;
 
 	player_notify_info("连接豆瓣中...");
-	douban = douban_radio_open();
+	douban = douban_radio_open(channel[9] - '0');
 	if (douban != RT_NULL)
 	{
-		player_set_title("豆瓣电台");
+		player_set_title(station);
 		player_notify_info("连接成功，缓冲中...");
 		/* start a job to netbuf worker */
 		if (net_buf_start_job(doubarn_radio_fetch, 

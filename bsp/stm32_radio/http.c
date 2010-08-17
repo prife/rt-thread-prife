@@ -8,8 +8,10 @@
 #include <lwip/sockets.h>
 #include <lwip/netdb.h>
 
-const char _http_get[] = "GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: RT-Thread HTTP Agent\r\nCookie: name=\"RT-Thread\"; ac=\"1281620086\"\r\n\r\n";
-const char _shoutcast_get[] = "GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: RT-Thread HTTP Agent\r\nIcy-MetaData: 1\r\nConnection: close\r\n\r\n";
+#define HTTP_RCV_TIMEO	6000 /* 6 second */
+
+const char _http_get[] = "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: RT-Thread HTTP Agent\r\nConnection: Keep-Alive\r\nCookie: name=\"RT-Thread\"; ac=\"1281620086\"\r\n\r\n";
+const char _shoutcast_get[] = "GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: RT-Thread HTTP Agent\r\nIcy-MetaData: 1\r\nConnection: close\r\n\r\n";
 
 extern long int strtol(const char *nptr, char **endptr, int base);
 
@@ -209,12 +211,16 @@ static int http_connect(struct http_session* session,
 	int peer_handle;
 	int rc;
 	char mimeBuffer[100];
+	int timeout = HTTP_RCV_TIMEO;
 
 	if((socket_handle = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP )) < 0)
 	{
 		rt_kprintf( "HTTP: SOCKET FAILED\n" );
 		return -1;
 	}
+
+	/* set recv timeout option */
+	setsockopt(socket_handle, SOL_SOCKET, SO_RCVTIMEO, (void*)&timeout, sizeof(timeout));
 
 	peer_handle = connect( socket_handle, (struct sockaddr *) server, sizeof(*server));
 	if ( peer_handle < 0 )
@@ -377,12 +383,16 @@ static int shoutcast_connect(struct shoutcast_session* session,
 	int peer_handle;
 	int rc;
 	char mimeBuffer[256];
+	int timeout = HTTP_RCV_TIMEO;
 
 	if((socket_handle = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP )) < 0)
 	{
 		rt_kprintf( "ICY: SOCKET FAILED\n" );
 		return -1;
 	}
+
+	/* set recv timeout option */
+	setsockopt(socket_handle, SOL_SOCKET, SO_RCVTIMEO, (void*)&timeout, sizeof(timeout));
 
 	peer_handle = connect( socket_handle, (struct sockaddr *) server, sizeof(*server));
 	if ( peer_handle < 0 )

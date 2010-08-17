@@ -2,6 +2,7 @@
 #define __PLAYER_H__
 
 #include <rtthread.h>
+#include "play_list.h"
 
 /* music tag information structure */
 struct tag_info
@@ -49,6 +50,11 @@ void player_notify_stop(void);
 void player_notify_info(const char* information);
 /* request player to show function view */
 void player_notfiy_functionview(void);
+
+/* play a list item */
+void player_play_item(struct play_item* item);
+/* update list */
+void player_update_list(void);
 
 /* set player information */
 void player_set_position(rt_uint32_t position);

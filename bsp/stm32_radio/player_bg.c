@@ -93,7 +93,7 @@ void player_thread(void* parameter)
 				{
 					is_playing = RT_TRUE;
 					player_notify_play();
-					doubarn_radio();
+					doubarn_radio(request.fn, request.station);
 
 					/* notfiy net buffer worker to stop */
 					net_buf_stop_job();

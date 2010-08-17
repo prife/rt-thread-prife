@@ -2,7 +2,8 @@
 #include "douban_radio.h"
 #include "JSON_parser.h"
 
-#define DOUBAN_RADIO_URL "http://douban.fm/j/mine/playlist"
+#define DOUBAN_RADIO_URL 			"http://douban.fm/j/mine/playlist"
+#define DOUBAN_RADIO_URL_CHANNEL	"http://douban.fm/j/mine/playlist?channel=%d"
 
 #define PARSE_TYPE_UNKNOW	0x00
 #define PARSE_TYPE_PICTURE	0x01
@@ -111,19 +112,25 @@ void douban_radio_parse(struct douban_radio* douban, const char* buffer, rt_size
 }
 
 #define BUFFER_SIZE	(1024 * 8)
-struct douban_radio* douban_radio_open()
+#define URL_SIZE	128
+struct douban_radio* douban_radio_open(int channel)
 {
 	rt_size_t length;
-	char *buffer;
+	char *buffer, *url;
 	rt_uint8_t *ptr;
 	struct http_session* session;
 	struct douban_radio* douban;
 
 	/* set init value */
 	buffer = RT_NULL; session = RT_NULL;
+	
+	url = (char*)rt_malloc(URL_SIZE);
+	if (url == RT_NULL) return RT_NULL;
+	rt_snprintf(url, URL_SIZE, DOUBAN_RADIO_URL_CHANNEL, channel);
 
 	/* open http session */
-	session = http_session_open(DOUBAN_RADIO_URL);
+	// rt_kprintf("open url: %s\n", url);
+	session = http_session_open(url);
 	if (session == RT_NULL) goto __exit;
 
 	buffer = rt_malloc(BUFFER_SIZE);
@@ -154,12 +161,14 @@ struct douban_radio* douban_radio_open()
 
 	/* release buffer */
 	rt_free(buffer);
+	rt_free(url);
 	buffer = RT_NULL;
 
 	return douban;
 
 __exit:
 	if (buffer != RT_NULL) rt_free(buffer);
+	if (url != RT_NULL) rt_free(url);
 	if (session != RT_NULL) http_session_close(session);
 
 	return RT_NULL;
@@ -182,11 +191,14 @@ rt_size_t douban_radio_read(struct douban_radio* douban, rt_uint8_t *buffer, rt_
 		if (douban->session == RT_NULL)
 		{
 			/* create a http session */
+			// rt_kprintf("open session url[%d]: %s\n", douban->current,
+			//	douban->items[douban->current].url);
 			douban->session = http_session_open(douban->items[douban->current].url);
 			if (douban->session == RT_NULL)
 			{
 				/* can't open this link */
 				douban->current ++;
+				// rt_kprintf("open session failed, move to %d\n", douban->current);
 				if (douban->current >= douban->size)
 				{
 					/* todo: play all of items, fetch a new list */
@@ -203,6 +215,7 @@ rt_size_t douban_radio_read(struct douban_radio* douban, rt_uint8_t *buffer, rt_
 			http_session_close(douban->session);
 			douban->session = RT_NULL;
 			douban->current ++;
+			// rt_kprintf("close session, move to %d\n", douban->current);
 			if (douban->current >= douban->size)
 			{
 				/* todo: play all of items, fetch a new list */
@@ -249,7 +262,7 @@ void douban_test()
 	rt_uint32_t index;
 	struct douban_radio* douban;
 
-	douban = douban_radio_open();
+	douban = douban_radio_open(1);
 	if (douban == RT_NULL)
 	{
 		rt_kprintf("open douban session failed\n");

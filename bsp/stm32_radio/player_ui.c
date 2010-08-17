@@ -55,7 +55,6 @@ static const struct rtgui_rect next_btn_rect = {59, 117, 59 + 28, 117 + 22};
 static const struct rtgui_image_hdcmm play_image = RTGUI_IMAGE_HDC_DEF(2, 0x1c, 0x16, play_hdh);
 static const struct rtgui_image_hdcmm stop_image = RTGUI_IMAGE_HDC_DEF(2, 0x1c, 0x16, stop_hdh);
 
-static void player_play_item(struct play_item* item);
 static void player_stop(void);
 
 static void info_timer_timeout(rtgui_timer_t* timer, void* parameter)
@@ -196,7 +195,7 @@ static void player_update_tag_info()
 	rtgui_dc_end_drawing(dc);
 }
 
-static void player_update_list()
+void player_update_list()
 {
 	int index;
 	struct play_item* item;
@@ -314,7 +313,7 @@ static void player_play_list_onitem(rtgui_widget_t* widget, rtgui_event_t* event
 	}
 }
 
-static void player_play_item(struct play_item* item)
+void player_play_item(struct play_item* item)
 {
 	int type;
 
@@ -410,13 +409,10 @@ static void function_play_radio(void* parameter)
 	rtgui_view_show(home_view, RT_FALSE);
 }
 
+#include "douban_channel.h"
 static void function_douban_radio(void* parameter)
 {
-	play_list_clear();
-	play_list_append_radio("douban://default", "¶¹°êµçÌ¨");
-
-	player_play_item(play_list_start());
-	player_update_list();
+	douban_channel_view(workbench);
 
 	/* show home view */
 	rtgui_view_show(home_view, RT_FALSE);
