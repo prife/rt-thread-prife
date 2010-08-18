@@ -63,37 +63,37 @@ static void key_thread_entry(void *parameter)
             if (key_enter_GETVALUE() == 0)
             {
                 /* HOME key */
-                rt_kprintf("key_home\n");
+                // rt_kprintf("key_home\n");
                 kbd_event.key  = RTGUIK_HOME;
             }
             else
             {
-                rt_kprintf("key_enter\n");
+                // rt_kprintf("key_enter\n");
                 kbd_event.key  = RTGUIK_RETURN;
             }
         }
 
         if ( key_down_GETVALUE()  == 0 )
         {
-            rt_kprintf("key_down\n");
+            // rt_kprintf("key_down\n");
             kbd_event.key  = RTGUIK_DOWN;
         }
 
         if ( key_up_GETVALUE()    == 0 )
         {
-            rt_kprintf("key_up\n");
+            // rt_kprintf("key_up\n");
             kbd_event.key  = RTGUIK_UP;
         }
 
         if ( key_right_GETVALUE() == 0 )
         {
-            rt_kprintf("key_right\n");
+            // rt_kprintf("key_right\n");
             kbd_event.key  = RTGUIK_RIGHT;
         }
 
         if ( key_left_GETVALUE()  == 0 )
         {
-            rt_kprintf("key_left\n");
+            // rt_kprintf("key_left\n");
             kbd_event.key  = RTGUIK_LEFT;
         }
 

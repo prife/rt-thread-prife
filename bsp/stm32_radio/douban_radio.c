@@ -23,7 +23,7 @@ static int _parse_callback(void* ctx, int type, const JSON_value* value)
 	switch (type)
 	{
     case JSON_T_KEY:
-        rt_kprintf("key = '%s', value = ", value->vu.str.value);
+        // rt_kprintf("key = '%s', value = ", value->vu.str.value);
 		if (strcmp(value->vu.str.value, "picture") == 0)
 		{
 			last_parse_type = PARSE_TYPE_PICTURE;
@@ -45,7 +45,7 @@ static int _parse_callback(void* ctx, int type, const JSON_value* value)
 			last_parse_type = PARSE_TYPE_UNKNOW;
 			/* move to next item */
 			douban->size += 1;
-			rt_kprintf("move to next item: %d\n", douban->size);
+			// rt_kprintf("move to next item: %d\n", douban->size);
 			if (douban->size >= DOUBAN_SONG_MAX)
 				/* terminate parse */
 				return 0;
@@ -70,7 +70,7 @@ static int _parse_callback(void* ctx, int type, const JSON_value* value)
 		default:
 			break;
 		}
-        rt_kprintf("string: '%s'\n", value->vu.str.value);
+        // rt_kprintf("string: '%s'\n", value->vu.str.value);
         break;
 	}
 
@@ -99,13 +99,14 @@ void douban_radio_parse(struct douban_radio* douban, const char* buffer, rt_size
 	{
 		if (!JSON_parser_char(jc, *ptr++))
 		{
-			rt_kprintf("JSON_parser_error: parse failed\n");
+			// rt_kprintf("JSON_parser_error: parse failed\n");
+			break;
 		}
 	}
 
 	if (!JSON_parser_done(jc))
 	{
-		rt_kprintf("JSON_parser_end: syntax error\n");
+		// rt_kprintf("JSON_parser_end: syntax error\n");
 	}
 
 	delete_JSON_parser(jc);
@@ -250,6 +251,11 @@ int douban_radio_close(struct douban_radio* douban)
 		rt_free(douban->items[index].title);
 		rt_free(douban->items[index].url);
 		rt_free(douban->items[index].picture);
+	}
+	if (douban->session != RT_NULL)
+	{
+		http_session_close(douban->session);
+		douban->session = RT_NULL;
 	}
 	rt_free(douban);
 
