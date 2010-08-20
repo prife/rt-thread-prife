@@ -19,6 +19,7 @@
  * 2006-09-03     Bernard      implement rt_thread_detach
  * 2008-02-16     Bernard      fix the rt_thread_timeout bug
  * 2010-03-21     Bernard      change the errno of rt_thread_delay/sleep to RT_EOK.
+ * 2010-08-20     MingBai      Add an assertion for stack alignment.
  */
 
 #include <rtthread.h>
@@ -124,6 +125,7 @@ rt_err_t rt_thread_init(struct rt_thread* thread,
 	/* thread check */
 	RT_ASSERT(thread != RT_NULL);
 	RT_ASSERT(stack_start != RT_NULL);
+	RT_ASSERT(((rt_uint32_t)stack_start) % RT_ALIGN_SIZE == 0 );
 
 	/* init thread object */
 	rt_object_init((rt_object_t)thread, RT_Object_Class_Thread, name);
@@ -654,3 +656,4 @@ rt_thread_t rt_thread_find(char* name)
 }
 
 /*@}*/
+
