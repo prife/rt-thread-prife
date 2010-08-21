@@ -387,17 +387,10 @@ rt_err_t sample_rate(int sr)
         r07 |= SR_24KHZ;
         break;
 
-#if CODEC_MASTER_MODE
     case 24000:
         r06 = REG_CLOCK_GEN | CLKSEL_MCLK | MCLK_DIV2 | BCLK_DIV8 | (r06 & MS);
         r07 |= SR_24KHZ;
         break;
-#else
-	case 24000:
-		r06 = REG_CLOCK_GEN | CLKSEL_PLL | MCLK_DIV2 | BCLK_DIV8 | (r06 & MS);
-		r07 |= SR_24KHZ;
-		break;
-#endif
 
     case 32000:
         r06 = REG_CLOCK_GEN | CLKSEL_MCLK | MCLK_DIV1_5 | BCLK_DIV8 | (r06 & MS);
