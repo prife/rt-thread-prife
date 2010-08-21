@@ -49,8 +49,6 @@ struct dfs_fd fd_table[DFS_FD_MAX];
 */
 void dfs_init()
 {
-	int index;
-
 	/* clear filesystem operations table */
 	rt_memset(filesystem_operation_table, 0, sizeof(filesystem_operation_table));
 
