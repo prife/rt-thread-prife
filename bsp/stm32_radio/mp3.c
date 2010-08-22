@@ -650,7 +650,7 @@ rt_size_t douban_radio_data_fetch(void* parameter, rt_uint8_t *buffer, rt_size_t
 	return net_buf_read(buffer, length);
 }
 
-void doubarn_radio(const char* channel, const char* station)
+void douban_radio(const char* channel, const char* station)
 {
     struct douban_radio* douban;
 	struct mp3_decoder* decoder;
@@ -690,6 +690,6 @@ void doubarn_radio(const char* channel, const char* station)
 		}
 	}
 }
-FINSH_FUNCTION_EXPORT(doubarn_radio, douban radio test);
+FINSH_FUNCTION_EXPORT(douban_radio, douban radio test);
 
 #endif

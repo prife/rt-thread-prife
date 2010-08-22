@@ -112,67 +112,25 @@ void douban_radio_parse(struct douban_radio* douban, const char* buffer, rt_size
 	delete_JSON_parser(jc);
 }
 
-#define BUFFER_SIZE	(1024 * 8)
-#define URL_SIZE	128
 struct douban_radio* douban_radio_open(int channel)
 {
-	rt_size_t length;
-	char *buffer, *url;
-	rt_uint8_t *ptr;
-	struct http_session* session;
 	struct douban_radio* douban;
-
-	/* set init value */
-	buffer = RT_NULL; session = RT_NULL;
-	
-	url = (char*)rt_malloc(URL_SIZE);
-	if (url == RT_NULL) return RT_NULL;
-	rt_snprintf(url, URL_SIZE, DOUBAN_RADIO_URL_CHANNEL, channel);
-
-	/* open http session */
-	// rt_kprintf("open url: %s\n", url);
-	session = http_session_open(url);
-	if (session == RT_NULL) goto __exit;
-
-	buffer = rt_malloc(BUFFER_SIZE);
-	if (buffer == RT_NULL) goto __exit;
-
-	/* read http data */
-	ptr = (rt_uint8_t*)buffer;
-	do
-	{
-		length = http_session_read(session, ptr, (rt_uint8_t*)buffer + BUFFER_SIZE - ptr);
-		if (length <= 0) break;
-		ptr += length;
-	}while (ptr < (rt_uint8_t*)buffer + BUFFER_SIZE);
-	length = ptr - (rt_uint8_t*)buffer;
-	rt_kprintf("total %d bytes\n", length);
-
-	/* close http session */
-	http_session_close(session); session = RT_NULL;
 
 	/* make a song list */
 	douban = (struct douban_radio*) rt_malloc (sizeof(struct douban_radio));
-	if (douban == RT_NULL) goto __exit;
-	memset(douban, 0, sizeof(struct douban_radio));
-	douban->current = douban->size = 0;
+	if (douban != RT_NULL)
+	{
+		memset(douban, 0, sizeof(struct douban_radio));
+		douban->channel = channel;
 
-	/* parse douban song list */
-	douban_radio_parse(douban, buffer, length);
-
-	/* release buffer */
-	rt_free(buffer);
-	rt_free(url);
-	buffer = RT_NULL;
+		if (douban_radio_playlist_load(douban) != RT_EOK)
+		{
+			rt_free(douban);
+			douban = RT_NULL;
+		}
+	}
 
 	return douban;
-
-__exit:
-	if (buffer != RT_NULL) rt_free(buffer);
-	if (url != RT_NULL) rt_free(url);
-	if (session != RT_NULL) http_session_close(session);
-
-	return RT_NULL;
 }
 
 rt_size_t douban_radio_read(struct douban_radio* douban, rt_uint8_t *buffer, rt_size_t length)
@@ -182,7 +140,7 @@ rt_size_t douban_radio_read(struct douban_radio* douban, rt_uint8_t *buffer, rt_
 
 	if (douban->current >= douban->size)
 	{
-		/* todo: play all of items, fetch a new list */
+		douban_radio_playlist_load(douban);
 		return 0;
 	}
 
@@ -202,7 +160,7 @@ rt_size_t douban_radio_read(struct douban_radio* douban, rt_uint8_t *buffer, rt_
 				// rt_kprintf("open session failed, move to %d\n", douban->current);
 				if (douban->current >= douban->size)
 				{
-					/* todo: play all of items, fetch a new list */
+					douban_radio_playlist_load(douban);
 					break;
 				}
 			}
@@ -219,7 +177,7 @@ rt_size_t douban_radio_read(struct douban_radio* douban, rt_uint8_t *buffer, rt_
 			// rt_kprintf("close session, move to %d\n", douban->current);
 			if (douban->current >= douban->size)
 			{
-				/* todo: play all of items, fetch a new list */
+				douban_radio_playlist_load(douban);
 				break;
 			}
 		}
@@ -260,6 +218,80 @@ int douban_radio_close(struct douban_radio* douban)
 	rt_free(douban);
 
 	return 0;
+}
+
+#define URL_SIZE	128
+int douban_radio_playlist_load(struct douban_radio* douban)
+{
+	rt_uint32_t index;
+	rt_size_t length;
+	char *buffer, *url;
+	rt_uint8_t *ptr;
+	struct http_session* session;
+
+	RT_ASSERT(douban != RT_NULL);
+
+	rt_kprintf("Loading douban.fm playlist...\n");
+
+	for (index = 0; index < douban->size; index ++)
+	{
+		rt_free(douban->items[index].artist);
+		rt_free(douban->items[index].title);
+		rt_free(douban->items[index].url);
+		rt_free(douban->items[index].picture);
+	}
+	if (douban->session != RT_NULL)
+	{
+		http_session_close(douban->session);
+		douban->session = RT_NULL;
+	}
+
+	/* set init value */
+	buffer = RT_NULL; session = RT_NULL;
+
+	url = (char*)rt_malloc(URL_SIZE);
+	if (url == RT_NULL) return -RT_ERROR;
+	rt_snprintf(url, URL_SIZE, DOUBAN_RADIO_URL_CHANNEL, douban->channel);
+
+	/* open http session */
+	// rt_kprintf("open url: %s\n", url);
+	session = http_session_open(url);
+	if (session == RT_NULL) goto __exit;
+
+	buffer = rt_malloc(session->size);
+	if (buffer == RT_NULL) goto __exit;
+
+	/* read http data */
+	ptr = (rt_uint8_t*)buffer;
+	do
+	{
+		length = http_session_read(session, ptr, (rt_uint8_t*)buffer + session->size - ptr);
+		if (length <= 0) break;
+		ptr += length;
+	} while (ptr < (rt_uint8_t*)buffer + session->size);
+	length = ptr - (rt_uint8_t*)buffer;
+	rt_kprintf("total %d bytes\n", length);
+
+	/* close http session */
+	http_session_close(session); session = RT_NULL;
+
+	/* parse douban song list */
+	douban->current = douban->size = 0;
+	douban_radio_parse(douban, buffer, length);
+
+	/* release buffer */
+	rt_free(buffer);
+	rt_free(url);
+	buffer = RT_NULL;
+
+	return RT_EOK;
+
+__exit:
+	if (buffer != RT_NULL) rt_free(buffer);
+	if (url != RT_NULL) rt_free(url);
+	if (session != RT_NULL) http_session_close(session);
+
+	return -RT_ERROR;
 }
 
 #include <finsh.h>

@@ -138,7 +138,7 @@ rt_size_t net_buf_read(rt_uint8_t* buffer, rt_size_t length)
 			rt_hw_interrupt_enable(level);
 
 			/* resume netbuf worker */
-			rt_kprintf("stat[suspend] -> buffering\n");
+			// rt_kprintf("stat[suspend] -> buffering\n");
             rt_sem_release(_netbuf.wait_resume);
         }
 		else
@@ -265,7 +265,7 @@ static void net_buf_do_job(struct net_buffer_job* job)
 				rt_err_t result, level;
 
 				/* no free space yet, suspend itself */
-				rt_kprintf("stat[buffering] -> suspend, avaible room %d\n", data_length);
+				// rt_kprintf("stat[buffering] -> suspend, avaible room %d\n", data_length);
 				level = rt_hw_interrupt_disable();
 				_netbuf.stat = NETBUF_STAT_SUSPEND;
 				rt_hw_interrupt_enable(level);

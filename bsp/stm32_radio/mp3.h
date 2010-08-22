@@ -8,6 +8,6 @@ void mp3_get_info(const char* filename, struct tag_info* info);
 void mp3(char* filename);
 void http_mp3(char* url);
 void ice_mp3(const char* url, const char* station);
-void doubarn_radio(const char* channel, const char* station);
+void douban_radio(const char* channel, const char* station);
 
 #endif

@@ -35,7 +35,7 @@ void player_radio_req(const char* fn, const char* station)
 
     /* send to message queue */
     rt_mq_send(player_thread_mq, (void*)&request, sizeof(struct player_request));
-}
+}
 
 void player_stop_req()
 {
@@ -93,7 +93,7 @@ void player_thread(void* parameter)
 				{
 					is_playing = RT_TRUE;
 					player_notify_play();
-					doubarn_radio(request.fn, request.station);
+					douban_radio(request.fn, request.station);
 
 					/* notfiy net buffer worker to stop */
 					net_buf_stop_job();
