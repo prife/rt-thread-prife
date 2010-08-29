@@ -25,8 +25,11 @@
 #include "shell.h"
 
 /* finsh thread */
+#ifndef RT_USING_HEAP
 static struct rt_thread finsh_thread;
+ALIGN(RT_ALIGN_SIZE)
 static char finsh_thread_stack[FINSH_THREAD_STACK_SIZE];
+#endif
 struct finsh_shell* shell;
 
 #if !defined (RT_USING_NEWLIB) && !defined (RT_USING_MINILIBC)
@@ -50,7 +53,7 @@ char *strdup(const char *s)
 }
 #endif
 
-#if !defined(__CC_ARM) && !defined(__ICCARM__) && !defined(__ICCM16C__)
+#if !defined(__CC_ARM) && !defined(__IAR_SYSTEMS_ICC__)
 int isalpha( int ch )
 {
 	return (unsigned int)((ch | 0x20) - 'a') < 26u;
@@ -144,7 +147,6 @@ void finsh_auto_complete(char* prefix)
 	rt_kprintf("finsh>>%s", prefix);
 }
 
-extern const char* finsh_error_string_table[];
 void finsh_run_line(struct finsh_parser* parser, const char *line)
 {
 	rt_kprintf("\n");
@@ -406,8 +408,6 @@ void finsh_system_var_init(void* begin, void* end)
 /* init finsh */
 void finsh_system_init(void)
 {
-	rt_err_t result;
-
 #ifdef FINSH_USING_SYMTAB
 #ifdef __CC_ARM                 /* ARM C Compiler */
     extern int FSymTab$$Base;
@@ -434,18 +434,33 @@ void finsh_system_init(void)
 	/* create or set shell structure */
 #ifdef RT_USING_HEAP
 	shell = (struct finsh_shell*)rt_malloc(sizeof(struct finsh_shell));
-#else
-	shell = &_shell;
-#endif
 	memset(shell, 0, sizeof(struct finsh_shell));
-
+	
 	rt_sem_init(&(shell->rx_sem), "shrx", 0, 0);
-	result = rt_thread_init(&finsh_thread,
-		"tshell",
-		finsh_thread_entry, RT_NULL,
-		&finsh_thread_stack[0], sizeof(finsh_thread_stack),
+	{
+		rt_thread_t tid;
+		
+		tid = rt_thread_create("tshell",
+		finsh_thread_entry, RT_NULL, FINSH_THREAD_STACK_SIZE,
 		FINSH_THREAD_PRIORITY, 10);
+		if (tid != RT_NULL) rt_thread_startup(tid);
+	}
+#else
+	{
+		rt_err_t result;
 
-	if (result == RT_EOK)
-		rt_thread_startup(&finsh_thread);
+		shell = &_shell;
+		memset(shell, 0, sizeof(struct finsh_shell));
+	
+		rt_sem_init(&(shell->rx_sem), "shrx", 0, 0);
+		result = rt_thread_init(&finsh_thread,
+			"tshell",
+			finsh_thread_entry, RT_NULL,
+			&finsh_thread_stack[0], sizeof(finsh_thread_stack),
+			FINSH_THREAD_PRIORITY, 10);
+	
+		if (result == RT_EOK)
+			rt_thread_startup(&finsh_thread);
+	}
+#endif
 }

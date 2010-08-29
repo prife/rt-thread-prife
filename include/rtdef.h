@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 /* RT-Thread version information */
-#define RT_VERSION						3
-#define RT_SUBVERSION					1
+#define RT_VERSION						3L
+#define RT_SUBVERSION					1L
 
 /* date type defination					*/
 typedef signed 	 char  					rt_int8_t;
@@ -55,17 +55,22 @@ typedef rt_uint32_t						rt_off_t;		/* Type for offset.							*/
 #define RT_UINT8_MAX					0xff			/* Maxium number of UINT8.					*/
 #define RT_UINT16_MAX					0xffff			/* Maxium number of UINT16.					*/
 #define RT_UINT32_MAX					0xffffffff		/* Maxium number of UINT32.					*/
+#define RT_TICK_MAX						RT_UINT32_MAX	/* Maxium number of tick                    */
 
+/* Compiler Related Definitions */
 #ifdef __CC_ARM                			 /* ARM Compiler 	*/
     #include <stdarg.h>
     #define SECTION(x)  				__attribute__((section(x)))
     #define UNUSED  					__attribute__((unused))
+	#define ALIGN(n)					__attribute__((aligned(n)))
     #define rt_inline   				static __inline
 
-#elif defined (__ICCARM__)        		/* for IAR Compiler */
+#elif defined (__IAR_SYSTEMS_ICC__)        		/* for IAR Compiler */
     #include <stdarg.h>
     #define SECTION(x)  				@ x
     #define UNUSED
+	#define PRAGMA(x)					_Pragma(#x)
+	#define ALIGN(n)					PRAGMA(data_alignment=n)
     #define rt_inline 					inline
 
 #elif defined (__GNUC__)        		/* GNU GCC Compiler */
@@ -87,6 +92,7 @@ typedef rt_uint32_t						rt_off_t;		/* Type for offset.							*/
 
     #define SECTION(x) 					__attribute__((section(x)))
     #define UNUSED 						__attribute__((unused))
+	#define ALIGN(n)					__attribute__((aligned(n)))
     #define rt_inline 					static __inline
 #endif
 
@@ -123,9 +129,14 @@ typedef rt_uint32_t						rt_off_t;		/* Type for offset.							*/
 /**
  * @def RT_ALIGN(size, align)
  * Return the most contiguous size aligned at specified width. RT_ALIGN(13, 4)
- * would equal to 16. It is needed in some critical contexts.
+ * would return 16.
+ *
+ * @def RT_ALIGN_DOWN(size, align)
+ * Return the down number of aligned at specified width. RT_ALIGN_DOWN(13, 4)
+ * would return 12. 
  */
 #define RT_ALIGN(size, align)			(((size) + (align) - 1) & ~((align)-1))
+#define RT_ALIGN_DOWN(size, align)		((size) & ~((align) -1))
 
 /**
  * @def RT_NULL
@@ -297,8 +308,6 @@ struct rt_thread
 	rt_uint8_t  flags;									/* thread's flags 							*/
 
 	rt_list_t	list;									/* the object list 							*/
-
-	rt_thread_t tid;									/* the thread id 							*/
 	rt_list_t	tlist;									/* the thread list 							*/
 
 	/* stack point and entry */
@@ -310,6 +319,8 @@ struct rt_thread
 
 	/* error code */
 	rt_err_t    error;									/* error code 								*/
+
+	rt_uint8_t	stat;									/* thread stat 								*/
 
 	/* priority */
 	rt_uint8_t	current_priority;						/* current priority 						*/
@@ -326,8 +337,6 @@ struct rt_thread
 	rt_uint8_t	event_info;
 #endif
 
-	rt_uint8_t	stat;									/* thread stat 								*/
-
 	rt_ubase_t	init_tick;								/* thread's tick 							*/
 	rt_ubase_t 	remaining_tick;							/* remaining tick 							*/
 
@@ -340,29 +349,6 @@ struct rt_thread
 	rt_uint32_t user_data;								/* user data 								*/
 };
 /*@}*/
-
-#ifdef RT_USING_MODULE
-struct rt_module
-{
-	/* inherit from object */
-	struct rt_object parent;
-
-	rt_uint32_t module_data;
-	void* module_space;
-
-	void* module_entry;
-	rt_uint32_t stack_size;
-	rt_uint32_t thread_priority;
-	rt_thread_t module_thread;
-
-	/* module memory pool */
-	rt_uint32_t mempool_size;
-	void* module_mempool;
-
-	/* object in this module, module object is the last basic object type */
-	struct rt_object_information module_object[RT_Object_Class_Module];
-};
-#endif
 
 /**
  * @addtogroup IPC
@@ -397,7 +383,7 @@ struct rt_semaphore
 {
 	struct rt_ipc_object parent;
 
-	rt_ubase_t value;									/* value of semaphore. 						*/
+	rt_uint16_t value;									/* value of semaphore. 						*/
 };
 typedef struct rt_semaphore* rt_sem_t;
 #endif
@@ -410,12 +396,12 @@ struct rt_mutex
 {
 	struct rt_ipc_object 	parent;
 
-	rt_ubase_t 				value;						/* value of mutex. 							*/
+	rt_uint8_t 				value;						/* value of mutex. 							*/
+
+	rt_uint8_t 				original_priority;			/* priority of last thread hold the mutex. 	*/
+	rt_uint8_t 				hold;			 			/* numbers of thread hold the mutex. 		*/
 
 	struct rt_thread		*owner;						/* current owner of mutex. 					*/
-	rt_uint8_t 				original_priority;			/* priority of last thread hold the mutex. 	*/
-
-	rt_ubase_t hold;			 						/* numbers of thread hold the mutex. 		*/
 };
 typedef struct rt_mutex* rt_mutex_t;
 #endif
@@ -450,10 +436,10 @@ struct rt_mailbox
 
 	rt_uint32_t* msg_pool;							/* start address of message buffer. 			*/
 
-	rt_size_t size;									/* size of message pool. 						*/
+	rt_uint16_t size;								/* size of message pool. 						*/
 
-	rt_ubase_t entry;								/* index of messages in msg_pool. 				*/
-	rt_ubase_t in_offset, out_offset;				/* in/output offset of the message buffer.		*/
+	rt_uint16_t entry;								/* index of messages in msg_pool. 				*/
+	rt_uint16_t in_offset, out_offset;				/* in/output offset of the message buffer.		*/
 };
 typedef struct rt_mailbox* rt_mailbox_t;
 #endif
@@ -468,14 +454,14 @@ struct rt_messagequeue
 
 	void* msg_pool;									/* start address of message queue. 				*/
 
-	rt_size_t msg_size;								/* message size of each message. 				*/
-	rt_size_t max_msgs;								/* max number of messages. 						*/
+	rt_uint16_t msg_size;							/* message size of each message. 				*/
+	rt_uint16_t max_msgs;							/* max number of messages. 						*/
+
+	rt_uint16_t entry;								/* index of messages in the queue. 				*/
 
 	void* msg_queue_head;							/* list head. 									*/
 	void* msg_queue_tail;							/* list tail. 									*/
 	void* msg_queue_free;							/* pointer indicated the free node of queue. 	*/
-
-	rt_ubase_t entry;								/* index of messages in the queue. 				*/
 };
 typedef struct rt_messagequeue* rt_mq_t;
 #endif

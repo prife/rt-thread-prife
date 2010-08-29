@@ -101,7 +101,7 @@ netif_add(struct netif *netif, struct ip_addr *ipaddr, struct ip_addr *netmask,
   netif->ip_addr.addr = 0;
   netif->netmask.addr = 0;
   netif->gw.addr = 0;
-  //netif->flags = 0;
+  /* netif->flags = 0; */
 #if LWIP_DHCP
   /* netif not under DHCP control by default */
   netif->dhcp = NULL;

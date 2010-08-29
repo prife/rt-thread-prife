@@ -24,7 +24,7 @@
 #define FINSH_STRING_MAX        128     /* max length of string */
 #define FINSH_VARIABLE_MAX      8       /* max number of variable */
 
-#define FINSH_STACK_MAX         128     /* max stack size */
+#define FINSH_STACK_MAX         64      /* max stack size */
 #define FINSH_TEXT_MAX          128     /* max text segment size */
 
 #define HEAP_ALIGNMENT          4       /* heap alignment */
@@ -66,7 +66,7 @@ typedef unsigned char  u_char;
 typedef unsigned short u_short;
 typedef unsigned long  u_long;
 
-#if !defined(__CC_ARM) && !defined(__ICCARM__) && !defined(__ICCM16C__)
+#if !defined(__CC_ARM) && !defined(__IAR_SYSTEMS_ICC__)
 typedef unsigned int size_t;
 
 #ifndef NULL

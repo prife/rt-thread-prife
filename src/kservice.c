@@ -407,7 +407,7 @@ void rt_show_version()
 	rt_kprintf("\n \\ | /\n");
 	rt_kprintf("- RT -     Thread Operating System\n");
 	rt_kprintf(" / | \\ 0.%d.%d build %s\n", RT_VERSION, RT_SUBVERSION, __DATE__);
-	rt_kprintf(" 2006 - 2009 Copyright by rt-thread team\n");
+	rt_kprintf(" 2006 - 2010 Copyright by rt-thread team\n");
 }
 
 /* private function */
@@ -927,8 +927,8 @@ void rt_hw_console_output(const char* str) __attribute__((weak));
 void rt_hw_console_output(const char* str)
 #elif defined(__CC_ARM)
 __weak void rt_hw_console_output(const char* str)
-#elif defined(__ICCARM__)
-__weak void rt_hw_console_output(const char* str)
+#elif defined(__IAR_SYSTEMS_ICC__)
+void rt_hw_console_output(const char* str)
 #endif
 {
     /* empty console output */

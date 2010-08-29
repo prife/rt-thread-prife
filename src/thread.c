@@ -45,8 +45,7 @@ static rt_err_t _rt_thread_init(struct rt_thread* thread,
 	void* stack_start, rt_uint32_t stack_size,
 	rt_uint8_t priority, rt_uint32_t tick)
 {
-	/* set thread id and init thread list */
-	thread->tid = thread;
+	/* init thread list */
 	rt_list_init(&(thread->tlist));
 
 	thread->entry = (void*)entry;
@@ -208,10 +207,10 @@ rt_err_t rt_thread_startup (rt_thread_t thread)
 	/* calculate priority attribute */
 #if RT_THREAD_PRIORITY_MAX > 32
 	thread->number 		= thread->current_priority >> 3; 			/* 5bit */
-	thread->number_mask	= 1 << thread->number;
-	thread->high_mask 	= 1 << (thread->current_priority & 0x07); 	/* 3bit */
+	thread->number_mask	= 1L << thread->number;
+	thread->high_mask 	= 1L << (thread->current_priority & 0x07); 	/* 3bit */
 #else
-	thread->number_mask = 1 << thread->current_priority;
+	thread->number_mask = 1L << thread->current_priority; //1L means long int,fixed compile mistake with IAR EW M16C v3.401,fify 20100410
 #endif
 
 #ifdef THREAD_DEBUG

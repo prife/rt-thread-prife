@@ -55,6 +55,8 @@ typedef rt_uint32_t	mem_ptr_t;
 
 #ifdef RT_USING_NEWLIB
 #include <errno.h>
+/* some errno not defined in newlib */
+#define ENSRNOTFOUND 163  /* Domain name not found */
 #else
 #define LWIP_PROVIDE_ERRNO
 #endif
@@ -69,7 +71,7 @@ typedef rt_uint32_t	mem_ptr_t;
 #define PACK_STRUCT_STRUCT __attribute__ ((__packed__))
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_END
-#elif defined(__ICCARM__)   /* IAR Compiler */
+#elif defined(__IAR_SYSTEMS_ICC__)   /* IAR Compiler */
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_STRUCT
 #define PACK_STRUCT_END
