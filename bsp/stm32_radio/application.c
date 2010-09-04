@@ -104,6 +104,9 @@ void rt_init_thread_entry(void *parameter)
         brightness_set(radio_setup.lcd_brightness);
     }
 
+    /* start RTC */
+    rt_hw_rtc_init();
+
     /* LwIP Initialization */
 #ifdef RT_USING_LWIP
     {
@@ -128,8 +131,6 @@ void rt_init_thread_entry(void *parameter)
     net_buf_init(320 * 1024);
 #endif
 
-    /* start RTC */
-    rt_hw_rtc_init();
 }
 
 int rt_application_init()

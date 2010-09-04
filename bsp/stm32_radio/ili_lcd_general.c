@@ -243,7 +243,8 @@ void lcd_gram_test(void)
                 if( BGR2RGB( lcd_read_gram(test_x,test_y) ) != temp++)
                 {
                     printf("  LCD GRAM ERR!!");
-                    while(1);
+                    //while(1);
+					return ;
                 }
             }
         }
@@ -258,7 +259,8 @@ void lcd_gram_test(void)
                 if(  lcd_read_gram(test_x,test_y) != temp++)
                 {
                     printf("  LCD GRAM ERR!!");
-                    while(1);
+                    //while(1);
+					return ;
                 }
             }
         }
@@ -283,7 +285,8 @@ void lcd_Initializtion(void)
     {
         printf("Invalid LCD ID:%08X\r\n",deviceid);
         printf("Please check you hardware and configure.");
-        while(1);
+        //while(1);
+		return ;
     }
     else
     {

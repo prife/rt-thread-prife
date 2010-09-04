@@ -101,9 +101,15 @@ static unsigned int flag = 0;
 void touch_timeout(void* parameter)
 {
     struct rtgui_event_mouse emouse;
+    static struct _touch_previous
+    {
+        rt_uint32_t x;
+        rt_uint32_t y;
+    } touch_previous;
 
     if (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_1) != 0)
     {
+        int tmer = RT_TICK_PER_SECOND/8 ;
         EXTI_Enable(1);
         emouse.parent.type = RTGUI_EVENT_MOUSE_BUTTON;
         emouse.button = (RTGUI_MOUSE_BUTTON_LEFT |RTGUI_MOUSE_BUTTON_UP);
@@ -122,11 +128,13 @@ void touch_timeout(void* parameter)
             /* callback function */
             touch->calibration_func(emouse.x, emouse.y);
         }
+        rt_timer_control(touch->poll_timer , RT_TIMER_CTRL_SET_TIME , &tmer);
     }
     else
     {
         if(flag == 0)
         {
+            int tmer = RT_TICK_PER_SECOND/20 ;
             /* calculation */
             rtgui_touch_calculate();
 
@@ -137,28 +145,45 @@ void touch_timeout(void* parameter)
             emouse.x = touch->x;
             emouse.y = touch->y;
 
+            touch_previous.x = touch->x;
+            touch_previous.y = touch->y;
+
             /* init mouse button */
             emouse.button = (RTGUI_MOUSE_BUTTON_LEFT |RTGUI_MOUSE_BUTTON_DOWN);
 
-            rt_kprintf("touch down: (%d, %d)\n", emouse.x, emouse.y);
+//            rt_kprintf("touch down: (%d, %d)\n", emouse.x, emouse.y);
             flag = 1;
+            rt_timer_control(touch->poll_timer , RT_TIMER_CTRL_SET_TIME , &tmer);
         }
         else
         {
-            /* send mouse event */
-            emouse.parent.type = RTGUI_EVENT_MOUSE_MOTION;
-            emouse.parent.sender = RT_NULL;
-
             /* calculation */
             rtgui_touch_calculate();
+
+            #define previous_keep      8
+            //判断移动距离是否小于previous_keep,减少误动作.
+            if(
+                (touch_previous.x<touch->x+previous_keep)
+                && (touch_previous.x>touch->x-previous_keep)
+                && (touch_previous.y<touch->y+previous_keep)
+                && (touch_previous.y>touch->y-previous_keep)  )
+            {
+                return;
+            }
+
+            touch_previous.x = touch->x;
+            touch_previous.y = touch->y;
+
+            /* send mouse event */
+            emouse.parent.type = RTGUI_EVENT_MOUSE_BUTTON ;
+            emouse.parent.sender = RT_NULL;
 
             emouse.x = touch->x;
             emouse.y = touch->y;
 
             /* init mouse button */
-            emouse.button = 0;
-            rt_kprintf("touch motion: (%d, %d)\n", emouse.x, emouse.y);
-
+            emouse.button = (RTGUI_MOUSE_BUTTON_RIGHT |RTGUI_MOUSE_BUTTON_DOWN);
+//            rt_kprintf("touch motion: (%d, %d)\n", emouse.x, emouse.y);
         }
     }
 
@@ -326,3 +351,25 @@ void rtgui_touch_hw_init(void)
     rt_device_register(&(touch->parent), "touch", RT_DEVICE_FLAG_RDWR);
 #endif
 }
+
+#include <finsh.h>
+
+void touch_t( rt_uint16_t x , rt_uint16_t y )
+{
+    struct rtgui_event_mouse emouse ;
+    emouse.parent.type = RTGUI_EVENT_MOUSE_BUTTON;
+    emouse.parent.sender = RT_NULL;
+
+    emouse.x = x ;
+    emouse.y = y ;
+    /* init mouse button */
+    emouse.button = (RTGUI_MOUSE_BUTTON_LEFT |RTGUI_MOUSE_BUTTON_DOWN );
+    rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
+
+    rt_thread_delay(2) ;
+    emouse.button = (RTGUI_MOUSE_BUTTON_LEFT |RTGUI_MOUSE_BUTTON_UP );
+    rtgui_server_post_event(&emouse.parent, sizeof(struct rtgui_event_mouse));
+}
+
+
+FINSH_FUNCTION_EXPORT(touch_t, x & y ) ;
