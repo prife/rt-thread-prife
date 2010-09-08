@@ -288,8 +288,9 @@ static rt_err_t codec_init(rt_device_t dev)
 // Exported functions
 #include <finsh.h>
 
-void vol(uint16_t v)
+void vol(uint16_t v) // 0~99
 {
+    v = 63*v/100;
     v = (v & VOL_MASK) << VOL_POS;
     codec_send(REG_LOUT1_VOL | v);
     codec_send(REG_ROUT1_VOL | HPVU | v);
