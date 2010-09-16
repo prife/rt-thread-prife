@@ -37,14 +37,12 @@ static void function_douban(void *parameter)
 	player_play_item(play_list_start());
 	player_update_list();
 
-    rtgui_view_destroy(RTGUI_VIEW(_douban_channel_view));
-    _douban_channel_view = RT_NULL;
+	rtgui_view_end_modal(RTGUI_VIEW(_douban_channel_view), RTGUI_MODAL_OK);
 }
 
 static void function_return(void *paramter)
 {
-    rtgui_view_destroy(RTGUI_VIEW(_douban_channel_view));
-    _douban_channel_view = RT_NULL;
+	rtgui_view_end_modal(RTGUI_VIEW(_douban_channel_view), RTGUI_MODAL_CANCEL);
 }
 
 void douban_channel_view(rtgui_workbench_t* workbench)
@@ -63,4 +61,7 @@ void douban_channel_view(rtgui_workbench_t* workbench)
 	}
 
 	rtgui_view_show(RTGUI_VIEW(_douban_channel_view), RT_TRUE);
+	rtgui_view_destroy(_douban_channel_view);
+	_douban_channel_view = RT_NULL;
 }
+
