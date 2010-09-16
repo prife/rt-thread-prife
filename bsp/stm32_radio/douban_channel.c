@@ -61,7 +61,7 @@ void douban_channel_view(rtgui_workbench_t* workbench)
 	}
 
 	rtgui_view_show(RTGUI_VIEW(_douban_channel_view), RT_TRUE);
-	rtgui_view_destroy(_douban_channel_view);
+	rtgui_view_destroy(RTGUI_VIEW(_douban_channel_view));
 	_douban_channel_view = RT_NULL;
 }
 
