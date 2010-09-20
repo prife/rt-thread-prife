@@ -1,7 +1,7 @@
 ### uVision2 Project, (C) Keil Software
 ### Do not modify !
 
-Target (RT-Thread/44B0), 0x0004 // Tools: 'ARM-ADS'
+Target (RT-Thread 44B0), 0x0004 // Tools: 'ARM-ADS'
 
 Group (Startup)
 Group (Kernel)
@@ -32,7 +32,7 @@ File 3,2,<..\..\libcpu\arm\s3c44b0\start_rvds.s><start_rvds.s>
 File 3,2,<..\..\libcpu\arm\s3c44b0\context_rvds.s><context_rvds.s>
 
 
-Options 1,0,0  // Target 'RT-Thread/44B0'
+Options 1,0,0  // Target 'RT-Thread 44B0'
  Device (S3C44B0X)
  Vendor (Samsung)
  Cpu (IRAM(0x10000000-0x10001FFF) CLOCK(66000000) CPUTYPE(ARM7TDMI))
