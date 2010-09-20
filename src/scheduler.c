@@ -391,7 +391,7 @@ void rt_enter_critical()
 
 	/* the maximal number of nest is RT_UINT16_MAX, which is big 
 	 * enough and does not check here */
-        rt_scheduler_lock_nest++;
+    rt_scheduler_lock_nest++;
 
     /* enable interrupt */
     rt_hw_interrupt_enable(level);

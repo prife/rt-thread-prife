@@ -74,34 +74,35 @@ static rt_err_t rt_serial_close(rt_device_t dev)
 
 static rt_size_t rt_serial_read (rt_device_t dev, rt_off_t pos, void* buffer, rt_size_t size)
 {
+	rt_base_t level;
 	rt_uint8_t* ptr;
 	rt_err_t err_code;
 	struct stm32_serial_device* uart;
+	struct stm32_serial_int_rx* int_rx;
 
 	ptr = buffer;
 	err_code = RT_EOK;
 	uart = (struct stm32_serial_device*)dev->private;
+	int_rx = uart->int_rx;
 
 	if (dev->flag & RT_DEVICE_FLAG_INT_RX)
 	{
 		/* interrupt mode Rx */
 		while (size)
 		{
-			rt_base_t level;
-
 			/* disable interrupt */
 			level = rt_hw_interrupt_disable();
 
-			if (uart->int_rx->read_index != uart->int_rx->save_index)
+			if (int_rx->read_index != int_rx->save_index)
 			{
 				/* read a character */
-				*ptr++ = uart->int_rx->rx_buffer[uart->int_rx->read_index];
+				*ptr++ = int_rx->rx_buffer[int_rx->read_index];
 				size--;
 
 				/* move to next position */
-				uart->int_rx->read_index ++;
-				if (uart->int_rx->read_index >= UART_RX_BUFFER_SIZE)
-					uart->int_rx->read_index = 0;
+				int_rx->read_index ++;
+				if (int_rx->read_index >= UART_RX_BUFFER_SIZE)
+					int_rx->read_index = 0;
 			}
 			else
 			{
@@ -309,7 +310,9 @@ rt_err_t rt_hw_serial_register(rt_device_t device, const char* name, rt_uint32_t
 /* ISR for serial interrupt */
 void rt_hw_serial_isr(rt_device_t device)
 {
+	rt_base_t level;
 	struct stm32_serial_device* uart = (struct stm32_serial_device*) device->private;
+	struct stm32_serial_int_rx* int_rx = uart->int_rx;
 
 	if(USART_GetITStatus(uart->uart_device, USART_IT_RXNE) != RESET)
 	{
@@ -319,23 +322,21 @@ void rt_hw_serial_isr(rt_device_t device)
 		/* save on rx buffer */
 		while (uart->uart_device->SR & USART_FLAG_RXNE)
 		{
-			rt_base_t level;
-
 			/* disable interrupt */
 			level = rt_hw_interrupt_disable();
 
 			/* save character */
-			uart->int_rx->rx_buffer[uart->int_rx->save_index] = uart->uart_device->DR & 0xff;
-			uart->int_rx->save_index ++;
-			if (uart->int_rx->save_index >= UART_RX_BUFFER_SIZE)
-				uart->int_rx->save_index = 0;
+			int_rx->rx_buffer[int_rx->save_index] = uart->uart_device->DR & 0xff;
+			int_rx->save_index ++;
+			if (int_rx->save_index >= UART_RX_BUFFER_SIZE)
+				int_rx->save_index = 0;
 
 			/* if the next position is read index, discard this 'read char' */
-			if (uart->int_rx->save_index == uart->int_rx->read_index)
+			if (int_rx->save_index == int_rx->read_index)
 			{
-				uart->int_rx->read_index ++;
-				if (uart->int_rx->read_index >= UART_RX_BUFFER_SIZE)
-					uart->int_rx->read_index = 0;
+				int_rx->read_index ++;
+				if (int_rx->read_index >= UART_RX_BUFFER_SIZE)
+					int_rx->read_index = 0;
 			}
 
 			/* enable interrupt */
@@ -351,9 +352,9 @@ void rt_hw_serial_isr(rt_device_t device)
 			rt_size_t rx_length;
 
 			/* get rx length */
-			rx_length = uart->int_rx->read_index > uart->int_rx->save_index ?
-				UART_RX_BUFFER_SIZE - uart->int_rx->read_index + uart->int_rx->save_index :
-				uart->int_rx->save_index - uart->int_rx->read_index;
+			rx_length = int_rx->read_index > int_rx->save_index ?
+				UART_RX_BUFFER_SIZE - int_rx->read_index + int_rx->save_index :
+				int_rx->save_index - int_rx->read_index;
 
 			device->rx_indicate(device, rx_length);
 		}

@@ -212,9 +212,6 @@ enum rt_object_class_type
 	RT_Object_Class_Device,								/* The object is a device 					*/
 #endif
 	RT_Object_Class_Timer,								/* The object is a timer. 					*/
-#ifdef RT_USING_MODULE
-	RT_Object_Class_Module,								/* The object is a module. 					*/
-#endif
 	RT_Object_Class_Unknown,							/* The object is unknown. 					*/
 	RT_Object_Class_Static = 0x80						/* The object is a static object. 			*/
 };
@@ -341,10 +338,6 @@ struct rt_thread
 	rt_ubase_t 	remaining_tick;							/* remaining tick 							*/
 
 	struct rt_timer thread_timer;						/* thread timer 							*/
-
-#ifdef RT_USING_MODULE
-	rt_module_t module_parent;							/* module parent 							*/
-#endif
 
 	rt_uint32_t user_data;								/* user data 								*/
 };

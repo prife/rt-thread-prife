@@ -75,11 +75,6 @@ static rt_err_t _rt_thread_init(struct rt_thread* thread,
 	thread->stat  = RT_THREAD_INIT;
 	thread->flags = 0;
 
-#ifdef RT_USING_MODULE
-	/* init module parent */
-	thread->module_parent = RT_NULL;
-#endif
-
 	/* init user data */
 	thread->user_data = 0;
 

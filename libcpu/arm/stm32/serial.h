@@ -57,7 +57,6 @@ struct stm32_serial_device
 
 	/* rx structure */
 	struct stm32_serial_int_rx* int_rx;
-
 	/* tx structure */
 	struct stm32_serial_dma_tx* dma_tx;
 };
