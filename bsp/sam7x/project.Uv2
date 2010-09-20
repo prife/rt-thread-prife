@@ -52,6 +52,7 @@ File 4,1,<..\..\finsh\symbol.c><symbol.c>
 File 5,1,<..\..\net\lwip\src\core\dhcp.c><dhcp.c>
 File 5,1,<..\..\net\lwip\src\core\dns.c><dns.c>
 File 5,1,<..\..\net\lwip\src\core\init.c><init.c>
+File 5,1,<..\..\net\lwip\src\core\memp.c><memp.c>
 File 5,1,<..\..\net\lwip\src\core\netif.c><netif.c>
 File 5,1,<..\..\net\lwip\src\core\pbuf.c><pbuf.c>
 File 5,1,<..\..\net\lwip\src\core\raw.c><raw.c>
@@ -88,7 +89,6 @@ File 5,1,<..\..\net\lwip\src\netif\loopif.c><loopif.c>
 File 5,1,<..\..\net\lwip\src\arch\sys_arch_init.c><sys_arch_init.c>
 File 5,1,<..\..\net\lwip\src\arch\sys_arch.c><sys_arch.c>
 File 5,1,<..\..\net\lwip\src\api\sockets.c><sockets.c>
-File 5,1,<E:\Projects\opensvn\rt-thread\google\net\lwip\src\core\memp.c><memp.c>
 File 6,1,<..\..\filesystem\dfs\src\dfs_util.c><dfs_util.c>
 File 6,1,<..\..\filesystem\dfs\src\dfs_fs.c><dfs_fs.c>
 File 6,1,<..\..\filesystem\dfs\src\dfs_init.c><dfs_init.c>
