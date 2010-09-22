@@ -10,11 +10,11 @@
  * Change Logs:
  * Date           Author       Notes
  * 2009-01-05     Bernard      the first version
+ * 2010-09-22     Bernard      modify led1 and led2 to PC9 and PC8
+ *                             for STM32 Value Line Discovery
  */
 #include <rtthread.h>
 #include <stm32f10x.h>
-
-#define STM32_SIMULATOR
 
 #ifdef STM32_SIMULATOR
 #define led1_rcc                    RCC_APB2Periph_GPIOA
@@ -25,12 +25,12 @@
 #define led2_gpio                   GPIOA
 #define led2_pin                    (GPIO_Pin_6)
 #else
-#define led1_rcc                    RCC_APB2Periph_GPIOF
-#define led1_gpio                   GPIOF
-#define led1_pin                    (GPIO_Pin_6 | GPIO_Pin_7)
+#define led1_rcc                    RCC_APB2Periph_GPIOC
+#define led1_gpio                   GPIOC
+#define led1_pin                    (GPIO_Pin_9)
 
-#define led2_rcc                    RCC_APB2Periph_GPIOF
-#define led2_gpio                   GPIOF
+#define led2_rcc                    RCC_APB2Periph_GPIOC
+#define led2_gpio                   GPIOC
 #define led2_pin                    (GPIO_Pin_8)
 #endif
 

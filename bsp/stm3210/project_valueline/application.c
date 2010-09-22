@@ -27,16 +27,20 @@ struct rt_thread thread_led;
 void rt_thread_entry_led(void* parameter)
 {
     rt_uint32_t count=0;
+
+	/* init led hardware */
+	rt_hw_led_init();
+
     while (1)
     {
         /* led on */
         rt_kprintf("led on,count : %d\n", count ++);
-        rt_hw_led_on(1);
+        rt_hw_led_on(0);
         rt_thread_delay(RT_TICK_PER_SECOND);
 
         /* led off */
         rt_kprintf("led off\n");
-        rt_hw_led_off(1);
+        rt_hw_led_off(0);
         rt_thread_delay(RT_TICK_PER_SECOND);
     }
 }
