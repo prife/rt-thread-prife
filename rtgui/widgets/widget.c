@@ -54,6 +54,9 @@ static void _rtgui_widget_constructor(rtgui_widget_t *widget)
 	/* set default event handler */
 	widget->event_handler = rtgui_widget_event_handler;
 
+	/* init user data private to 0 */
+	widget->user_data = 0;
+
 	/* init clip information */
 	rtgui_region_init(&(widget->clip));
 }
@@ -123,6 +126,11 @@ void rtgui_widget_set_rect(rtgui_widget_t* widget, rtgui_rect_t* rect)
 
 	/* reset clip info */
 	rtgui_region_init_with_extents(&(widget->clip), rect);
+	if ((widget->parent != RT_NULL) && (widget->toplevel != RT_NULL))
+	{
+		/* update widget clip */
+		rtgui_widget_update_clip(widget->parent);
+	}
 }
 
 #ifndef RTGUI_USING_SMALL_SIZE
@@ -404,7 +412,15 @@ void rtgui_widget_update_clip(rtgui_widget_t* widget)
 
 	parent = widget->parent;
 	/* if there is no parent, do not update clip (please use toplevel widget API) */
-	if (parent == RT_NULL) return;
+	if (parent == RT_NULL)
+	{
+		if (RTGUI_IS_TOPLEVEL(widget))
+		{
+			/* if it's toplevel widget, update it by toplevel function */
+			rtgui_toplevel_update_clip(RTGUI_TOPLEVEL(widget));
+		}
+		return;
+	}
 
 	/* reset clip to extent */
 	rtgui_region_reset(&(widget->clip), &(widget->extent));

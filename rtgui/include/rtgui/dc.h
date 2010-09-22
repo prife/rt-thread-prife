@@ -81,7 +81,6 @@ void rtgui_dc_draw_word(struct rtgui_dc*dc, int x, int y, int h, const rt_uint8_
 void rtgui_dc_draw_border(struct rtgui_dc* dc, rtgui_rect_t* rect, int flag);
 void rtgui_dc_draw_horizontal_line(struct rtgui_dc* dc, int x1, int x2, int y);
 void rtgui_dc_draw_vertical_line(struct rtgui_dc* dc, int x, int y1, int y2);
-void rtgui_dc_draw_arrow(struct rtgui_dc* dc, rtgui_rect_t* rect, int kind);
 void rtgui_dc_draw_focus_rect(struct rtgui_dc* dc, rtgui_rect_t* rect);
 
 void rtgui_dc_draw_polygon(struct rtgui_dc* dc, const int *vx, const int *vy, int count);
