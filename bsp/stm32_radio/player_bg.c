@@ -117,7 +117,7 @@ void player_init()
 
 	result = rt_thread_init(&player_thread_tid, "ply_bg", player_thread, RT_NULL,
 		player_thread_stack, sizeof(player_thread_stack), 
-		20, 5);
+		13, 5);
 
 	if (result != RT_EOK) rt_kprintf("player thread init failed\n");
 	else
