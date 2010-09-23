@@ -70,7 +70,12 @@ void rtgui_dc_destory(struct rtgui_dc* dc);
 
 void rtgui_dc_draw_line (struct rtgui_dc* dc, int x1, int y1, int x2, int y2);
 void rtgui_dc_draw_rect (struct rtgui_dc* dc, struct rtgui_rect* rect);
-void rtgui_dc_draw_round_rect(struct rtgui_dc* dc, struct rtgui_rect* rect);
+void rtgui_dc_fill_rect_forecolor(struct rtgui_dc* dc, struct rtgui_rect* rect);
+void rtgui_dc_draw_round_rect(struct rtgui_dc* dc, struct rtgui_rect* rect, int r);
+void rtgui_dc_fill_round_rect(struct rtgui_dc* dc, struct rtgui_rect* rect, int r);
+void rtgui_dc_draw_annulus(struct rtgui_dc *dc, rt_int16_t x, rt_int16_t y, rt_int16_t r1, rt_int16_t r2, rt_int16_t start, rt_int16_t end);
+void rtgui_dc_draw_sector(struct rtgui_dc *dc, rt_int16_t x, rt_int16_t y, rt_int16_t r, rt_int16_t start, rt_int16_t end);
+void rtgui_dc_fill_sector(struct rtgui_dc *dc, rt_int16_t x, rt_int16_t y, rt_int16_t r, rt_int16_t start, rt_int16_t end);
 
 void rtgui_dc_draw_text (struct rtgui_dc* dc, const char* text, struct rtgui_rect* rect);
 
@@ -145,8 +150,6 @@ rt_inline void rtgui_dc_fill_rect (struct rtgui_dc* dc, struct rtgui_rect* rect)
  */
 rt_inline void rtgui_dc_blit(struct rtgui_dc* dc, struct rtgui_point* dc_point, struct rtgui_dc* dest, rtgui_rect_t* rect)
 {
-	if (dest == RT_NULL || rect == RT_NULL) return;
-
 	dc->blit(dc, dc_point, dest, rect);
 }
 
@@ -179,10 +182,7 @@ rt_inline rt_bool_t rtgui_dc_get_visible(struct rtgui_dc* dc)
  */
 rt_inline void rtgui_dc_get_rect(struct rtgui_dc*dc, rtgui_rect_t* rect)
 {
-	if (rect != RT_NULL)
-	{
-		dc->get_rect(dc, rect);
-	}
+	dc->get_rect(dc, rect);
 }
 
 #endif
