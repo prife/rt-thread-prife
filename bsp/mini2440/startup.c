@@ -35,7 +35,6 @@ extern void rt_show_version(void);
 extern void rt_system_heap_init(void*, void*);
 extern void rt_hw_finsh_init(void);
 extern void rt_application_init(void);
-extern void rt_calendar(void);
 
 extern struct serial_device uart0;
 extern struct rt_device uart0_device;
@@ -99,9 +98,6 @@ void rtthread_startup(void)
 
 	/* show version */
 	rt_show_version();
-	
-	/* show calendar */
-	rt_calendar();
 	
 	/* init tick */
 	rt_system_tick_init();
