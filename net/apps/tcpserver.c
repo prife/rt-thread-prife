@@ -69,7 +69,7 @@ void tcpserv(void* parameter)
             send(connected, send_data, strlen(send_data), 0);
 
 			bytes_received = recv(connected,recv_data, 1024, 0);
-			if (bytes_received < 0)
+			if (bytes_received <= 0)
 			{
 			    /* close socket */
 			    lwip_close(connected);

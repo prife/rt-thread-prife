@@ -33,9 +33,14 @@ void tcpecho_entry(void *parameter)
 				{
 					netbuf_data(buf, &data, &len);
 					err = netconn_write(newconn, data, len, NETCONN_COPY);
-					if(err != ERR_OK){}
-				}
-				while(netbuf_next(buf) >= 0);
+					if(err != ERR_OK)
+					{
+						rt_kprintf("netconn write error\n");
+						break;
+					}
+				}while(netbuf_next(buf) >= 0);
+
+				/* Delete this buffer */
 				netbuf_delete(buf);
 			}
 			/* Close connection and discard connection identifier. */

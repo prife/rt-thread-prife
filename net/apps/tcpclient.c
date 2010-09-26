@@ -2,7 +2,9 @@
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>
 
+ALIGN(4)
 static const char send_data[] = "This is TCP Client from RT-Thread.";
+
 void tcpclient(const char* url, int port)
 {
 	char *recv_data;
@@ -37,6 +39,8 @@ void tcpclient(const char* url, int port)
 	{
 		rt_kprintf("Connect error\n");
 
+		/* close socket */
+	    lwip_close(sock);
         /* release recv buffer */
         rt_free(recv_data);
 		return;
@@ -45,10 +49,9 @@ void tcpclient(const char* url, int port)
 	while(1)
 	{
 		bytes_received = recv(sock, recv_data, 1024, 0);
-		if (bytes_received < 0)
+		if (bytes_received <= 0)
 		{
 		    lwip_close(sock);
-
             /* release recv buffer */
             rt_free(recv_data);
 			break;

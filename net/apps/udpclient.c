@@ -2,6 +2,7 @@
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>
 
+ALIGN(4)
 const char send_data[] = "This is UDP Client from RT-Thread.\n";
 void udpclient(const char* url, int port, int count)
 {

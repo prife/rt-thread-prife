@@ -50,6 +50,7 @@ void udpserv(void* paramemter)
 	{
 		bytes_read = recvfrom(sock, recv_data, 1024, 0,
             (struct sockaddr *)&client_addr, &addr_len);
+		if (bytes_read <= 0) continue;
 		recv_data[bytes_read] = '\0';
 		rt_kprintf("\n(%s , %d) said : ",inet_ntoa(client_addr.sin_addr),
 			   ntohs(client_addr.sin_port));
