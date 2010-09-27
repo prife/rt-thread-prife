@@ -75,7 +75,7 @@
 #define FINSH_USING_DESCRIPTION
 
 /* SECTION: device filesystem support */
-/* #define RT_USING_DFS */
+#define RT_USING_DFS
 #define RT_USING_DFS_ELMFAT
 
 /* the max number of mounted filesystem */
@@ -86,7 +86,8 @@
 #define DFS_CACHE_MAX_NUM   		4
 
 /* SECTION: lwip, a lighwight TCP/IP protocol stack */
-//#define RT_USING_LWIP
+#define RT_USING_LWIP
+#define RT_LWIP_USING_RT_MEM
 
 /* Enable ICMP protocol*/
 #define RT_LWIP_ICMP

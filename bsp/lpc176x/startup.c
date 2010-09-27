@@ -19,6 +19,10 @@
 #include "lpc17xx.h"
 #include "board.h"
 
+#ifdef RT_USING_DFS
+#include "sd.h"
+#endif
+
 /**
  * @addtogroup LPC17
  */
@@ -81,12 +85,12 @@ void rtthread_startup(void)
 
 #ifdef RT_USING_HEAP
 	#ifdef __CC_ARM
-		rt_system_heap_init((void*)&Image$$RW_IRAM1$$ZI$$Limit, (void*)0x10004000);
+		rt_system_heap_init((void*)&Image$$RW_IRAM1$$ZI$$Limit, (void*)0x10008000);
 	#elif __ICCARM__
-	    rt_system_heap_init(__segment_end("HEAP"), (void*)0x10004000);
+	    rt_system_heap_init(__segment_end("HEAP"), (void*)0x10008000);
 	#else
 		/* init memory system */
-		rt_system_heap_init((void*)&__bss_end, (void*)0x10004000);
+		rt_system_heap_init((void*)&__bss_end, (void*)0x10008000);
 	#endif
 #endif
 
@@ -94,6 +98,9 @@ void rtthread_startup(void)
 	rt_system_scheduler_init();
 
 #ifdef RT_USING_DEVICE
+#ifdef RT_USING_DFS
+	rt_hw_sdcard_init();
+#endif
 	/* init all device */
 	rt_device_init_all();
 #endif
