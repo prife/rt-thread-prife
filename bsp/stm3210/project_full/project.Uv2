@@ -47,8 +47,8 @@ File 2,1,<.\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_spi.c><stm32f10x_
 File 2,1,<.\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c><stm32f10x_tim.c>
 File 2,1,<.\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_usart.c><stm32f10x_usart.c>
 File 2,1,<.\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_wwdg.c><stm32f10x_wwdg.c>
-File 3,1,<.\Libraries\CMSIS\Core\CM3\core_cm3.c><core_cm3.c>
-File 3,1,<.\Libraries\CMSIS\Core\CM3\system_stm32f10x.c><system_stm32f10x.c>
+File 3,1,<.\Libraries\CMSIS\CM3\CoreSupport\core_cm3.c><core_cm3.c>
+File 3,1,<.\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c><system_stm32f10x.c>
 File 4,1,<..\..\src\clock.c><clock.c>
 File 4,1,<..\..\src\device.c><device.c>
 File 4,1,<..\..\src\idle.c><idle.c>
@@ -84,22 +84,12 @@ File 6,1,<..\..\finsh\finsh_var.c><finsh_var.c>
 File 6,1,<..\..\finsh\finsh_vm.c><finsh_vm.c>
 File 6,1,<..\..\finsh\shell.c><shell.c>
 File 7,1,<..\..\filesystem\dfs\src\dfs_util.c><dfs_util.c>
-File 7,1,<..\..\filesystem\dfs\src\dfs_cache.c><dfs_cache.c>
 File 7,1,<..\..\filesystem\dfs\src\dfs_fs.c><dfs_fs.c>
 File 7,1,<..\..\filesystem\dfs\src\dfs_init.c><dfs_init.c>
 File 7,1,<..\..\filesystem\dfs\src\dfs_posix.c><dfs_posix.c>
 File 7,1,<..\..\filesystem\dfs\src\dfs_raw.c><dfs_raw.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\base\plibc.c><plibc.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\base\efs.c><efs.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\base\extract.c><extract.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\base\partition.c><partition.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\ui.c><ui.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\dir.c><dir.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\fat.c><fat.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\file.c><file.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\fs.c><fs.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\ls.c><ls.c>
-File 7,1,<..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\time.c><time.c>
+File 7,1,<..\..\filesystem\dfs\filesystems\elmfat\ff.c><ff.c>
+File 7,1,<..\..\filesystem\dfs\filesystems\elmfat\dfs_elm.c><dfs_elm.c>
 File 8,1,<..\..\net\lwip\src\core\dhcp.c><dhcp.c>
 File 8,1,<..\..\net\lwip\src\core\dns.c><dns.c>
 File 8,1,<..\..\net\lwip\src\core\init.c><init.c>
@@ -193,7 +183,7 @@ Options 1,0,0  // Target 'RT-Thread STM32'
  ADSCMISC ()
  ADSCDEFN (USE_STDPERIPH_DRIVER, STM32F10X_HD,)
  ADSCUDEF ()
- ADSCINCD (.\Libraries\STM32F10x_StdPeriph_Driver\inc;.\Libraries\CMSIS\Core\CM3;..\..\include;.;..\..\libcpu\arm\stm32;..\..\filesystem\dfs;..\..\filesystem\dfs\include;..\..\filesystem\dfs\filesystems\efsl\src\include;..\..\filesystem\dfs\filesystems\efsl\src\base\include;..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\include;..\..\net\lwip\src;..\..\net\lwip\src\include;..\..\net\lwip\src\arch\include;..\..\net\lwip\src\include\ipv4;..\..\finsh)
+ ADSCINCD (.\Libraries\STM32F10x_StdPeriph_Driver\inc;.\Libraries\CMSIS\CM3\CoreSupport;.\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;..\..\include;.;..\..\libcpu\arm\stm32;..\..\filesystem\dfs;..\..\filesystem\dfs\include;..\..\filesystem\dfs\filesystems\efsl\src\include;..\..\filesystem\dfs\filesystems\efsl\src\base\include;..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\include;..\..\net\lwip\src;..\..\net\lwip\src\include;..\..\net\lwip\src\arch\include;..\..\net\lwip\src\include\ipv4;..\..\finsh)
  ADSASFLG { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
  ADSAMISC ()
  ADSADEFN ()
