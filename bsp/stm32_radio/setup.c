@@ -233,7 +233,7 @@ static void function_action_return(void* paramter)
     function_view = RT_NULL;
 }
 
-#if (LCD_VERSION==2)
+#if ( LCD_VERSION == 2 ) || ( LCD_VERSION == 3 )
 extern void calibration_init(void);
 static void function_calibration(void* parameter)
 {
@@ -446,7 +446,7 @@ static const struct rtgui_list_item function_list[] =
 {
     {"返回上级菜单", RT_NULL, function_action_return, RT_NULL},
     {"音量背光设置", RT_NULL, function_action_setup, RT_NULL},
-#if (LCD_VERSION==2)
+#if ( LCD_VERSION == 2 ) || ( LCD_VERSION == 3 )
     {"触摸屏校准", RT_NULL, function_calibration, RT_NULL},
     {"触摸屏画板", RT_NULL, function_drawpad, RT_NULL},
 #endif

@@ -47,10 +47,11 @@
 // <o> LCD Module Version
 // <1=>Version 1: fmt0371
 // <2=>Version 2: i8080/16bit ili9320/9325/9328 LG4531 ST7783
+// <3=>Version 3: i8080/16bit SSD1289
 // 	<i>Default: 1
 #define LCD_VERSION             2
 
-// <o> LCD Module brightness use PWM: <0=>NO <1=>YES
+// <o> LCD backlight: <0=>NO <1=>PB9 TIM4_CH4 <2=>PB6 TIM4_CH1
 // 	<i>Default: 1
 #define LCD_USE_PWM             1
 

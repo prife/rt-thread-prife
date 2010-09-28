@@ -117,12 +117,16 @@ static void all_device_reset(void)
     GPIO_ResetBits(GPIOF,GPIO_Pin_10);
 
     /* LCD brightness */
-#if !LCD_USE_PWM
+#if ( LCD_USE_PWM == 0 )
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOF,&GPIO_InitStructure);
     GPIO_ResetBits(GPIOF,GPIO_Pin_9); /* LCD brightness power off */
-#else
+#elif ( LCD_USE_PWM == 1 )
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_Init(GPIOB,&GPIO_InitStructure);
+    GPIO_ResetBits(GPIOB,GPIO_Pin_9); /* LCD brightness power off */
+#elif ( LCD_USE_PWM == 2 )
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
     GPIO_Init(GPIOB,&GPIO_InitStructure);
     GPIO_ResetBits(GPIOB,GPIO_Pin_9); /* LCD brightness power off */
 #endif

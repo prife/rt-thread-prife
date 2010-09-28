@@ -10,7 +10,7 @@
 #include <rtgui/rtgui_server.h>
 #include <rtgui/rtgui_system.h>
 
-#if (LCD_VERSION == 2)
+#if ( LCD_VERSION == 2 ) || ( LCD_VERSION == 3 )
 /*
 MISO PA6
 MOSI PA7
@@ -63,14 +63,61 @@ static void rtgui_touch_calculate()
         /* SPI1 configure */
         rt_hw_spi1_baud_rate(SPI_BaudRatePrescaler_64);/* 72M/64=1.125M */
 
-        CS_0();
-        WriteDataTo7843(TOUCH_MSR_X);                                    /* read X */
-        touch->x = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
-        touch->x |= ((SPI_WriteByte(TOUCH_MSR_Y)>>4)&0x0F );    /* read LSB bit[7:0] */
-        touch->y = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
-        touch->y |= ((SPI_WriteByte(0x00)>>4)&0x0F );           /* read LSB bit[7:0] */
-        WriteDataTo7843( 1<<7 ); /* 打开中断 */
-        CS_1();
+        //读取触摸值
+        {
+            rt_uint16_t tmpx[10];
+            rt_uint16_t tmpy[10];
+            unsigned int i;
+
+            for(i=0; i<10; i++)
+            {
+                CS_0();
+                WriteDataTo7843(TOUCH_MSR_X);                                    /* read X */
+                tmpx[i] = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
+                tmpx[i] |= ((SPI_WriteByte(TOUCH_MSR_Y)>>4)&0x0F );    /* read LSB bit[7:0] */
+                tmpy[i] = SPI_WriteByte(0x00)<<4;                      /* read MSB bit[11:8] */
+                tmpy[i] |= ((SPI_WriteByte(0x00)>>4)&0x0F );           /* read LSB bit[7:0] */
+                WriteDataTo7843( 1<<7 ); /* 打开中断 */
+                CS_1();
+            }
+
+            //去最高值与最低值,再取平均值
+            {
+                rt_uint32_t min_x = 0xFFFF,min_y = 0xFFFF;
+                rt_uint32_t max_x = 0,max_y = 0;
+                rt_uint32_t total_x = 0;
+                rt_uint32_t total_y = 0;
+                unsigned int i;
+
+                for(i=0;i<10;i++)
+                {
+                    if( tmpx[i] < min_x )
+                    {
+                        min_x = tmpx[i];
+                    }
+                    if( tmpx[i] > max_x )
+                    {
+                        max_x = tmpx[i];
+                    }
+                    total_x += tmpx[i];
+
+                    if( tmpy[i] < min_y )
+                    {
+                        min_y = tmpy[i];
+                    }
+                    if( tmpy[i] > max_y )
+                    {
+                        max_y = tmpy[i];
+                    }
+                    total_y += tmpy[i];
+                }
+                total_x = total_x - min_x - max_x;
+                total_y = total_y - min_y - max_y;
+                touch->x = total_x / 8;
+                touch->y = total_y / 8;
+            }//去最高值与最低值,再取平均值
+        }//读取触摸值
+
         rt_sem_release(&spi1_lock);
 
         /* if it's not in calibration status  */
@@ -160,7 +207,7 @@ void touch_timeout(void* parameter)
             /* calculation */
             rtgui_touch_calculate();
 
-            #define previous_keep      8
+#define previous_keep      8
             //判断移动距离是否小于previous_keep,减少误动作.
             if(
                 (touch_previous.x<touch->x+previous_keep)
@@ -325,7 +372,7 @@ void EXTI1_IRQHandler(void)
 
 void rtgui_touch_hw_init(void)
 {
-#if (LCD_VERSION == 2)
+#if ( LCD_VERSION == 2 ) || ( LCD_VERSION == 3 )
     touch = (struct rtgui_touch_device*)rt_malloc (sizeof(struct rtgui_touch_device));
     if (touch == RT_NULL) return; /* no memory yet */
 

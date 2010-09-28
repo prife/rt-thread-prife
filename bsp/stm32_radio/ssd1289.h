@@ -1,11 +1,9 @@
-#ifndef ILI_LCD_GENERAL_H_INCLUDED
-#define ILI_LCD_GENERAL_H_INCLUDED
+#ifndef SSD1289_H_INCLUDED
+#define SSD1289_H_INCLUDED
 
-/*
- Compatible list:
- ili9320 ili9325 ili9328
- LG4531
-*/
+
+// Compatible list:
+// ssd1289
 
 /* LCD color */
 #define White            0xFFFF
@@ -25,12 +23,10 @@
 #define BPP             16                  /* Bits per pixel                     */
 #define BYPP            ((BPP+7)/8)         /* Bytes per pixel                    */
 
-extern void lcd_Initializtion(void);
-extern unsigned int lcd_getdeviceid(void);
+extern void ssd1289_init(void);
 
 //#define _ILI_REVERSE_DIRECTION_
 #define use_rt_gui
-
 
 #if defined(use_rt_gui)
 #include "rtthread.h"
@@ -38,13 +34,13 @@ extern unsigned int lcd_getdeviceid(void);
 #include <rtgui/driver.h>
 #include <rtgui/rtgui_server.h>
 #include <rtgui/rtgui_system.h>
-extern void rt_hw_lcd_update(rtgui_rect_t *rect);
-extern rt_uint8_t * rt_hw_lcd_get_framebuffer(void);
-extern void rt_hw_lcd_set_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y);
-extern void rt_hw_lcd_get_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y);
-extern void rt_hw_lcd_draw_hline(rtgui_color_t *c, rt_base_t x1, rt_base_t x2, rt_base_t y);
-extern void rt_hw_lcd_draw_vline(rtgui_color_t *c, rt_base_t x, rt_base_t y1, rt_base_t y2);
-extern void rt_hw_lcd_draw_raw_hline(rt_uint8_t *pixels, rt_base_t x1, rt_base_t x2, rt_base_t y);
+extern void ssd1289_lcd_set_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y);
+extern void ssd1289_lcd_get_pixel(rtgui_color_t *c, rt_base_t x, rt_base_t y);
+extern void ssd1289_lcd_draw_hline(rtgui_color_t *c, rt_base_t x1, rt_base_t x2, rt_base_t y);
+extern void ssd1289_lcd_draw_vline(rtgui_color_t *c, rt_base_t x, rt_base_t y1, rt_base_t y2);
+extern void ssd1289_lcd_draw_raw_hline(rt_uint8_t *pixels, rt_base_t x1, rt_base_t x2, rt_base_t y);
+extern void ssd1289_lcd_update(rtgui_rect_t *rect);
+extern rt_uint8_t * ssd1289_lcd_get_framebuffer(void);
 #endif
 
-#endif // ILI_LCD_GENERAL_H_INCLUDED
+#endif // SSD1289_H_INCLUDED
