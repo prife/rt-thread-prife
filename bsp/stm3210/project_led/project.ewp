@@ -29,8 +29,8 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>13</version>
-          <state>36</state>
+          <version>9</version>
+          <state>33</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -553,7 +553,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>8</version>
+        <version>7</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -606,7 +606,7 @@
         </option>
         <option>
           <name>IlinkMapFile</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IlinkLogFile</name>
@@ -630,11 +630,11 @@
         </option>
         <option>
           <name>IlinkIcfOverride</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IlinkIcfFile</name>
-          <state>$PROJ_DIR$\stm32f10x_flash.icf</state>
+          <state>lnk0t.icf</state>
         </option>
         <option>
           <name>IlinkIcfFileSlave</name>
@@ -694,7 +694,11 @@
         </option>
         <option>
           <name>IlinkProgramEntryLabel</name>
-          <state>__iar_program_start</state>
+          <state></state>
+        </option>
+        <option>
+          <name>IlinkNXPLPCChecksum</name>
+          <state>0</state>
         </option>
         <option>
           <name>DoFill</name>
@@ -763,10 +767,6 @@
           <name>CrcFullSize</name>
           <state>0</state>
         </option>
-        <option>
-          <name>IlinkIElfToolPostProcess</name>
-          <state>0</state>
-        </option>
       </data>
     </settings>
     <settings>
@@ -823,7 +823,7 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>13</version>
+          <version>9</version>
           <state>36</state>
         </option>
         <option>
@@ -1347,7 +1347,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>8</version>
+        <version>7</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1364,7 +1364,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>project.out</state>
+          <state>###Unitialized###</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -1400,7 +1400,7 @@
         </option>
         <option>
           <name>IlinkMapFile</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IlinkLogFile</name>
@@ -1424,11 +1424,11 @@
         </option>
         <option>
           <name>IlinkIcfOverride</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IlinkIcfFile</name>
-          <state>$PROJ_DIR$\stm32f10x_flash.icf</state>
+          <state>lnk0t.icf</state>
         </option>
         <option>
           <name>IlinkIcfFileSlave</name>
@@ -1488,7 +1488,11 @@
         </option>
         <option>
           <name>IlinkProgramEntryLabel</name>
-          <state>__iar_program_start</state>
+          <state></state>
+        </option>
+        <option>
+          <name>IlinkNXPLPCChecksum</name>
+          <state>0</state>
         </option>
         <option>
           <name>DoFill</name>
@@ -1555,10 +1559,6 @@
         </option>
         <option>
           <name>CrcFullSize</name>
-          <state>0</state>
-        </option>
-        <option>
-          <name>IlinkIElfToolPostProcess</name>
           <state>0</state>
         </option>
       </data>

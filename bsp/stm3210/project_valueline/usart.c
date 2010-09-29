@@ -17,6 +17,7 @@
 #include <serial.h>
 #include <stm32f10x_dma.h>
 
+#if defined(RT_USING_UART1) || defined(RT_USING_UART2) || defined(RT_USING_UART3)
 /*
  * Use UART1 as console output and finsh input
  * interrupt Rx and poll Tx (stream mode)
@@ -186,9 +187,6 @@ static void NVIC_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	/* Configure the NVIC Preemption Priority Bits */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
-
 #ifdef RT_USING_UART1
 	/* Enable the USART1 Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
@@ -338,3 +336,9 @@ void rt_hw_usart_init()
 	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
 #endif
 }
+#else
+void rt_hw_usart_init()
+{
+	/* not use UART */
+}
+#endif

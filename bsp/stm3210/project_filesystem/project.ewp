@@ -29,8 +29,8 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>13</version>
-          <state>36</state>
+          <version>9</version>
+          <state>33</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -91,7 +91,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>5.41.0.51757</state>
+          <state>5.30.0.51236</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -556,7 +556,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>8</version>
+        <version>7</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -609,7 +609,7 @@
         </option>
         <option>
           <name>IlinkMapFile</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IlinkLogFile</name>
@@ -700,6 +700,10 @@
           <state>__iar_program_start</state>
         </option>
         <option>
+          <name>IlinkNXPLPCChecksum</name>
+          <state>0</state>
+        </option>
+        <option>
           <name>DoFill</name>
           <state>0</state>
         </option>
@@ -766,10 +770,6 @@
           <name>CrcFullSize</name>
           <state>0</state>
         </option>
-        <option>
-          <name>IlinkIElfToolPostProcess</name>
-          <state>0</state>
-        </option>
       </data>
     </settings>
     <settings>
@@ -826,8 +826,8 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>13</version>
-          <state>36</state>
+          <version>9</version>
+          <state>33</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -1350,7 +1350,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>8</version>
+        <version>7</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1403,7 +1403,7 @@
         </option>
         <option>
           <name>IlinkMapFile</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>IlinkLogFile</name>
@@ -1494,6 +1494,10 @@
           <state>__iar_program_start</state>
         </option>
         <option>
+          <name>IlinkNXPLPCChecksum</name>
+          <state>0</state>
+        </option>
+        <option>
           <name>DoFill</name>
           <state>0</state>
         </option>
@@ -1558,10 +1562,6 @@
         </option>
         <option>
           <name>CrcFullSize</name>
-          <state>0</state>
-        </option>
-        <option>
-          <name>IlinkIElfToolPostProcess</name>
           <state>0</state>
         </option>
       </data>

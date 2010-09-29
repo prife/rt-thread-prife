@@ -62,6 +62,9 @@ void rt_init_thread_entry(void* parameter)
 #ifdef RT_USING_LWIP
 	{
 		extern void lwip_sys_init(void);
+#ifdef STM32F10X_CL
+		extern void rt_hw_stm32_eth_init(void);
+#endif
 
 		/* register ethernetif device */
 		eth_system_device_init();
@@ -71,9 +74,9 @@ void rt_init_thread_entry(void* parameter)
 #else
 	/* STM32F103 */
 	#if STM32_ETH_IF == 0
-			rt_hw_enc28j60_init();
+		rt_hw_enc28j60_init();
 	#elif STM32_ETH_IF == 1
-			rt_hw_dm9000_init();
+		rt_hw_dm9000_init();
 	#endif
 #endif
 

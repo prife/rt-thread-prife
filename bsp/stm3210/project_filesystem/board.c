@@ -10,6 +10,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2009-01-05     Bernard      first implementation
+ * 2010-09-29     Bernard      add priority grouping configuration
  */
 
 #include <rthw.h>
@@ -41,6 +42,13 @@ void NVIC_Configuration(void)
 	/* Set the Vector Table base location at 0x08000000 */
 	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
 #endif
+
+	/*
+	 * Configures the priority grouping:
+	 * NVIC_PriorityGroup_2: 2 bits for pre-emption priority
+	 *                       2 bits for subpriority
+	 */
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 }
 
 /*******************************************************************************
