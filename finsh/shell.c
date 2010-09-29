@@ -399,7 +399,7 @@ void finsh_system_var_init(void* begin, void* end)
 	_sysvar_table_end = (struct finsh_sysvar*) end;
 }
 
-#if defined(__ICCARM__)               /* for IAR compiler */
+#if defined(__IAR_SYSTEMS_ICC__)               /* for IAR compiler */
   #ifdef FINSH_USING_SYMTAB
     #pragma section="FSymTab"
     #pragma section="VSymTab"
@@ -416,7 +416,7 @@ void finsh_system_init(void)
     extern int VSymTab$$Limit;
 	finsh_system_function_init(&FSymTab$$Base, &FSymTab$$Limit);
 	finsh_system_var_init(&VSymTab$$Base, &VSymTab$$Limit);
-#elif defined (__ICCARM__)      /* for IAR Compiler */
+#elif defined (__IAR_SYSTEMS_ICC__)      /* for IAR Compiler */
     finsh_system_function_init(__section_begin("FSymTab"),
                                __section_end("FSymTab"));
     finsh_system_var_init(__section_begin("VSymTab"),
