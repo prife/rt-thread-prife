@@ -11,12 +11,15 @@ static void function_return(void *paramter);
 
 static const struct rtgui_list_item channel_list[] =
 {
-    {"飪國貌逄", RT_NULL, function_douban, (void*)1},
-    {"飪國韁藝", RT_NULL, function_douban, (void*)2},
-    {"飪國埡逄", RT_NULL, function_douban, (void*)6},
-    {"飪國70爛", RT_NULL, function_douban, (void*)3},
-    {"飪國80爛", RT_NULL, function_douban, (void*)4},
-    {"飪國90爛", RT_NULL, function_douban, (void*)5},
+    {"飪國樅褲單 - 貌逄Mhz", RT_NULL, function_douban, (void*)1},
+    {"飪國韁藝MHz", RT_NULL, function_douban, (void*)2},
+    {"飪國牷幗MHz", RT_NULL, function_douban, (void*)7},
+    {"飪國埡逄MHz", RT_NULL, function_douban, (void*)6},
+    {"飪國鏍狴MHz", RT_NULL, function_douban, (void*)8},
+    {"飪國ш秞氈MHz", RT_NULL, function_douban, (void*)9},
+    {"飪國70爛MHz", RT_NULL, function_douban, (void*)3},
+    {"飪國80爛MHz", RT_NULL, function_douban, (void*)4},
+    {"飪國90爛MHz", RT_NULL, function_douban, (void*)5},
     {"殿隙奻撰", RT_NULL, function_return, RT_NULL },
 };
 

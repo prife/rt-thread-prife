@@ -3,7 +3,7 @@
 #include "JSON_parser.h"
 
 #define DOUBAN_RADIO_URL 			"http://douban.fm/j/mine/playlist"
-#define DOUBAN_RADIO_URL_CHANNEL	"http://douban.fm/j/mine/playlist?channel=%d"
+#define DOUBAN_RADIO_URL_CHANNEL	"http://douban.fm/j/mine/playlist?type=n&channel=%d"
 
 #define PARSE_TYPE_UNKNOW	0x00
 #define PARSE_TYPE_PICTURE	0x01
@@ -284,6 +284,11 @@ int douban_radio_playlist_load(struct douban_radio* douban)
 	rt_free(url);
 	buffer = RT_NULL;
 
+	if (douban->size == 0) 
+	{
+		if (session != RT_NULL) http_session_close(session);
+		return -RT_ERROR;
+	}
 	return RT_EOK;
 
 __exit:
