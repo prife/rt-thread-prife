@@ -129,7 +129,7 @@
 
 #ifdef RT_DFS_ELM_MAX_SECTOR_SIZE
 #define _MAX_SS     RT_DFS_ELM_MAX_SECTOR_SIZE
-#elif
+#else
 #define	_MAX_SS		512		/* 512, 1024, 2048 or 4096 */
 #endif
 /* Maximum sector size to be handled.

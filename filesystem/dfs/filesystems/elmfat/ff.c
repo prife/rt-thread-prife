@@ -3167,7 +3167,7 @@ int elm_get_vol(FATFS *fat)
 }
 #endif
 
-FATFS elm_get_fs(BYTE vol)
+FATFS* elm_get_fs(BYTE vol)
 {
 	FATFS *fat;
 
