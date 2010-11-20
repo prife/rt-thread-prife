@@ -4,9 +4,11 @@
 #include "ffconf.h"
 #include "ff.h"
 
-extern FATFS * elm_get_fs(BYTE vol);
 static rt_device_t disk[_DRIVES] = {0};
+
+#if _MAX_SS != 512
 static FATFS * fs_tab[_DRIVES];
+#endif
 
 static int elm_result_to_dfs(FRESULT result)
 {
@@ -84,8 +86,10 @@ int dfs_elm_mount(struct dfs_filesystem* fs)
 	result = f_mount(index, fat);
 	if (result == FR_OK)
     {
-		fs->data = fat;
-		fs_tab[index] = fat;
+        fs->data = fat;
+#if _MAX_SS != 512
+        fs_tab[index] = fat;
+#endif
     }
 	else
 	{
@@ -541,9 +545,13 @@ DSTATUS disk_status (BYTE drv)
 /* Read Sector(s) */
 DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count)
 {
-	rt_size_t result;
-	rt_device_t device = disk[drv];
-	rt_size_t s_size = fs_tab[drv]->s_size;
+    rt_size_t result;
+    rt_device_t device = disk[drv];
+#if _MAX_SS != 512
+    rt_size_t s_size = fs_tab[drv]->s_size;
+#else
+    rt_size_t s_size = 512;
+#endif
 
 	result = rt_device_read(device, sector * s_size, buff, count * s_size);
 	if (result == count * s_size)
@@ -557,9 +565,13 @@ DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count)
 /* Write Sector(s) */
 DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count)
 {
-	rt_size_t result;
-	rt_device_t device = disk[drv];
-	rt_size_t s_size = fs_tab[drv]->s_size;
+    rt_size_t result;
+    rt_device_t device = disk[drv];
+#if _MAX_SS != 512
+    rt_size_t s_size = fs_tab[drv]->s_size;
+#else
+    rt_size_t s_size = 512;
+#endif
 
 	result = rt_device_write(device, sector * s_size, buff, count * s_size);
 	if (result == count * s_size)
