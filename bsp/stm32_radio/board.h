@@ -49,11 +49,11 @@
 // <2=>Version 2: i8080/16bit ili9320/9325/9328 LG4531 ST7783
 // <3=>Version 3: i8080/16bit SSD1289
 // 	<i>Default: 1
-#define LCD_VERSION             2
+#define LCD_VERSION             3
 
 // <o> LCD backlight: <0=>NO <1=>PB9 TIM4_CH4 <2=>PB6 TIM4_CH1
 // 	<i>Default: 1
-#define LCD_USE_PWM             1
+#define LCD_USE_PWM             2
 
 /*
  * IMPORTANT NOTICE:
@@ -68,6 +68,12 @@
 // <0=>SPI2
 // <1=>SPI3
 #define CODEC_USE_SPI3		1
+
+// <o> SPI FLASH TYPE
+// <1=>Version 1: AT45DB161D
+// <2=>Version 2: SST25VF016B
+// 	<i>Default: 2
+#define SPI_FLASH_TYPE             2
 
 void rt_hw_led_on(int n);
 void rt_hw_led_off(int n);

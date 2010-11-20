@@ -86,6 +86,7 @@
 #define RT_DFS_ELM_DRIVES			2
 #define RT_DFS_ELM_USE_LFN			1
 #define RT_DFS_ELM_MAX_LFN			255
+#define RT_DFS_ELM_MAX_SECTOR_SIZE  4096
 
 /* SECTION: DFS options */
 /* the max number of mounted filesystem */

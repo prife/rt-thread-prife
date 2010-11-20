@@ -16,7 +16,7 @@ extern rt_device_t dev_spi_flash;
 extern unsigned long test_unit_ready_last;
 void msc_thread_entry(void *parameter)
 {
-	extern void player_ui_freeze(void);
+    extern void player_ui_freeze(void);
     unsigned long test_unit_ready_start = rt_tick_get();
     test_unit_ready_last = test_unit_ready_start;
 
@@ -27,8 +27,8 @@ void msc_thread_entry(void *parameter)
     }
 
 
-	/* freeze player UI */
-	player_ui_freeze();
+    /* freeze player UI */
+    player_ui_freeze();
 
     /* wait remove */
     while(1)
@@ -37,7 +37,7 @@ void msc_thread_entry(void *parameter)
         if( rt_tick_get() - test_unit_ready_last > RT_TICK_PER_SECOND*2 )
         {
             rt_kprintf("\r\nCable removed!\r\nSystemReset\r\n\r\n");
-            NVIC_SystemReset();
+//            NVIC_SystemReset();
         }
     }
 }
@@ -71,12 +71,18 @@ void USB_cable(void)
         SPI_CalculateCRC(SPI1, DISABLE);
     }
 
+    {
+        /* SPI_FLASH */
+        struct rt_device_blk_geometry geometry;
+        dev_spi_flash = rt_device_find("spi0");
 
-    /* SPI_FLASH */
-    dev_spi_flash = rt_device_find("spi0");
-    Mass_Block_Size[1]  = 512;
-    Mass_Block_Count[1] = 4096;
-    Mass_Memory_Size[1] = 4096*512;
+        rt_memset(&geometry, 0, sizeof(geometry));
+        rt_device_control(dev_spi_flash, RT_DEVICE_CTRL_BLK_GETGEOME, &geometry);
+
+        Mass_Block_Size[1]  = geometry.bytes_per_sector;
+        Mass_Block_Count[1] = geometry.sector_count;
+        Mass_Memory_Size[1] = geometry.bytes_per_sector * geometry.sector_count;
+    }
 
     if(dev != RT_NULL)
     {

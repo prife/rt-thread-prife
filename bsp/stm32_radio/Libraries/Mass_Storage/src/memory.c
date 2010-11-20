@@ -33,7 +33,7 @@ __IO uint32_t Block_Read_count = 0;
 __IO uint32_t Block_offset;
 __IO uint32_t Counter = 0;
 uint32_t  Idx;
-uint32_t Data_Buffer[BULK_MAX_PACKET_SIZE *2]; /* 512 bytes*/
+uint32_t Data_Buffer[ 4096/4 ]; /* max sector size bytes*/
 uint8_t TransferState = TXFR_IDLE;
 /* Extern variables ----------------------------------------------------------*/
 extern uint8_t Bulk_Data_Buff[BULK_MAX_PACKET_SIZE];  /* data buffer*/
@@ -150,7 +150,7 @@ void Write_Memory (uint8_t lun, uint32_t Memory_Offset, uint32_t Transfer_Length
 
     CSW.dDataResidue -= Data_Len;
   #ifndef STM32F10X_CL
-    SetEPRxStatus(ENDP2, EP_RX_VALID); /* enable the next transaction*/   
+    SetEPRxStatus(ENDP2, EP_RX_VALID); /* enable the next transaction*/
   #endif /* STM32F10X_CL */
 
     Led_RW_ON();
