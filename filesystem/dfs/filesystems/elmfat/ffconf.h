@@ -166,8 +166,11 @@
 /  If it is not the case, the value can also be set to 1 to improve the
 /  performance and code size. */
 
-
-#define _FS_REENTRANT	0			/* 0 or 1 */
+#ifdef RT_DFS_ELM_REENTRANT
+#define _FS_REENTRANT	RT_DFS_ELM_REENTRANT			/* 0 or 1 */
+#else
+#define _FS_REENTRANT	0
+#endif
 #define _FS_TIMEOUT		1000		/* Timeout period in unit of time ticks */
 #define	_SYNC_t			rt_mutex_t	/* O/S dependent type of sync object. e.g. HANDLE, OS_EVENT*, ID and etc.. */
 /* The _FS_REENTRANT option switches the reentrancy of the FatFs module.
