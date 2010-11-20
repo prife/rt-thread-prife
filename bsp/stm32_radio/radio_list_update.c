@@ -17,8 +17,8 @@
 
 /* */
 #define RADIO_FN                    "/radio.pls"
-//#define RADIO_LIST_UPDATE_URL       "http://www.rt-thread.org/radio/radio.pls"
-#define RADIO_LIST_UPDATE_URL       "http://www.aozima.com/radio/radio.pls"
+#define RADIO_LIST_UPDATE_URL       "http://www.rt-thread.org/radio/radio.pls"
+//#define RADIO_LIST_UPDATE_URL       "http://www.aozima.com/radio/radio.pls"
 /* */
 
 /* */
@@ -117,6 +117,7 @@ int  radio_list_update_servicer_connect(struct sockaddr_in* server, char* host_a
 
         if (strstr(mimeBuffer, "Content-Type:"))
         {
+#if 0       // not check content-type anymore
             /* check content-type */
             if (strstr(mimeBuffer, "text/plain") == RT_NULL)
             {
@@ -124,6 +125,7 @@ int  radio_list_update_servicer_connect(struct sockaddr_in* server, char* host_a
                 closesocket(peer_handle);
                 return -1;
             }
+#endif
         }
     }
 
@@ -192,6 +194,7 @@ int update_radio_list(char* url)
     {
         rt_kprintf("Update radio list succeed \r\n");
     }
+
     return 0;
 }
 
