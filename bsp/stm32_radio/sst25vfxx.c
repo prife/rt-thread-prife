@@ -10,6 +10,11 @@
 #include <stdint.h>
 #include "sst25vfxx.h"
 
+/* 0:don'ot use DMA 1:use DMA */
+#define SPI_FLASH_USE_DMA         1
+/* secotr_size = 4096byte,secotr_size % DMA_BUFFER_SIZE == 0 */
+#define DMA_BUFFER_SIZE           512
+
 static uint32_t device_id = 0;
 
 // bsp support:
@@ -42,11 +47,63 @@ static uint32_t device_id = 0;
 
 #define spi_config()  rt_hw_spi1_baud_rate(SPI_BaudRatePrescaler_4);/* 72M/4=18M */
 
+#if SPI_FLASH_USE_DMA
+static uint8_t dummy = 0xFF;
+static uint8_t _spi_flash_buffer[ DMA_BUFFER_SIZE ];
+#endif
+
+#if SPI_FLASH_USE_DMA
+static void DMA_RxConfiguration(rt_uint32_t addr, rt_size_t size)
+{
+    DMA_InitTypeDef DMA_InitStructure;
+
+    DMA_ClearFlag(DMA1_FLAG_TC2 | DMA1_FLAG_TE2 | DMA1_FLAG_TC3 | DMA1_FLAG_TE3);
+
+    /* DMA Channel configuration ----------------------------------------------*/
+    DMA_Cmd(DMA1_Channel2, DISABLE);
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&(SPI1->DR));
+    DMA_InitStructure.DMA_MemoryBaseAddr = (u32) addr;
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+    DMA_InitStructure.DMA_BufferSize = size;
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+    DMA_Init(DMA1_Channel2, &DMA_InitStructure);
+
+    DMA_Cmd(DMA1_Channel2, ENABLE);
+
+    /* Dummy TX channel configuration */
+    DMA_Cmd(DMA1_Channel3, DISABLE);
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)(&(SPI1->DR));
+    DMA_InitStructure.DMA_MemoryBaseAddr = (u32)(&dummy);
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
+    DMA_InitStructure.DMA_BufferSize = size;
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Disable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    DMA_InitStructure.DMA_Priority = DMA_Priority_Medium;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+    DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+    DMA_Init(DMA1_Channel3, &DMA_InitStructure);
+
+    DMA_Cmd(DMA1_Channel3, ENABLE);
+}
+#endif
+
 static void port_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+#if SPI_FLASH_USE_DMA
+    /* Enable the DMA1 Clock */
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+#endif
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_4;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
@@ -113,10 +170,23 @@ uint32_t sst25vfxx_read(uint32_t offset,uint8_t * buffer,uint32_t size)
     spi_readwrite(  offset>>16 );
     spi_readwrite(  offset>>8 );
     spi_readwrite(  offset );
+#if SPI_FLASH_USE_DMA
+    for(index=0; index<size/DMA_BUFFER_SIZE; index++)
+    {
+        DMA_RxConfiguration((rt_uint32_t)_spi_flash_buffer, DMA_BUFFER_SIZE);
+        SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
+        SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
+        while (DMA_GetFlagStatus(DMA1_FLAG_TC2) == RESET);
+        SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, DISABLE);
+        rt_memcpy(buffer,_spi_flash_buffer,DMA_BUFFER_SIZE);
+        buffer += DMA_BUFFER_SIZE;
+    }
+#else
     for(index=0; index<size; index++)
     {
         *buffer++ = spi_readwrite(0xFF);
     }
+#endif
     CS_HIGH();
 
     spi_unlock();

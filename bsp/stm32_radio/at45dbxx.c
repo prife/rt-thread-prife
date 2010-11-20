@@ -15,17 +15,25 @@ extern uint8_t SPI_WriteByte(unsigned char data);
 #define FLASH_CS_1()     GPIO_SetBits(GPIOA,GPIO_Pin_4)
 /********************** hardware *************************************/
 
-#define FLASH_SECTOR_SIZE 512
+/* 0:don'ot use DMA 1:use DMA */
+#define SPI_FLASH_USE_DMA         1
+/* secotr_size = 512byte */
+#define DMA_BUFFER_SIZE           512
 
 #if SPI_FLASH_USE_DMA
-static uint8_t dummy = 0;
-static uint8_t _spi_flash_buffer[ FLASH_SECTOR_SIZE ];
+static uint8_t dummy = 0xFF;
+static uint8_t _spi_flash_buffer[ DMA_BUFFER_SIZE ];
 #endif
+
 static void GPIO_Configuration(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+#if SPI_FLASH_USE_DMA
+    /* Enable the DMA1 Clock */
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+#endif
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_4 | GPIO_Pin_3;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
@@ -79,21 +87,21 @@ static void DMA_RxConfiguration(rt_uint32_t addr, rt_size_t size)
     DMA_Cmd(DMA1_Channel3, ENABLE);
 }
 #endif
-static uint8_t SPI_HostReadByte(void)
+
+static uint8_t spi_readwrite(uint8_t data)
 {
-    //return SPI_WriteByte(0x00);
     //Wait until the transmit buffer is empty
-    //while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
-    while( (SPI1->SR & SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
     // Send the byte
-    SPI_I2S_SendData(SPI1, 0);
+    SPI_I2S_SendData(SPI1, data);
 
     //Wait until a data is received
-    //while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
-    while( (SPI1->SR & SPI_I2S_FLAG_RXNE) == RESET);
+    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
     // Get the received data
-    return SPI_I2S_ReceiveData(SPI1);
+    data = SPI_I2S_ReceiveData(SPI1);
 
+    // Return the shifted data
+    return data;
 }
 
 static void SPI_HostWriteByte(uint8_t wByte)
@@ -118,7 +126,7 @@ static uint8_t AT45DB_StatusRegisterRead(void)
 
     FLASH_CS_0();
     SPI_HostWriteByte(AT45DB_READ_STATE_REGISTER);
-    i = SPI_HostReadByte();
+    i = spi_readwrite(0xFF);
     FLASH_CS_1();
 
     return i;
@@ -144,7 +152,7 @@ static void read_page(uint32_t page, uint8_t *pHeader)
     /* SPI1 configure */
     rt_hw_spi1_baud_rate(SPI_BaudRatePrescaler_4);/* 72M/4=18M */
 
-    DMA_RxConfiguration((rt_uint32_t) pHeader, FLASH_SECTOR_SIZE);
+    DMA_RxConfiguration((rt_uint32_t) pHeader, DMA_BUFFER_SIZE);
 
     FLASH_CS_0();
 
@@ -188,9 +196,9 @@ static void read_page(uint32_t page, uint8_t *pHeader)
     SPI_HostWriteByte(0x00);
     SPI_HostWriteByte(0x00);
 
-    for (i = 0; i < FLASH_SECTOR_SIZE; i++)
+    for (i = 0; i < DMA_BUFFER_SIZE; i++)
     {
-        *pHeader++ = SPI_HostReadByte();
+        *pHeader++ = spi_readwrite();
     }
 
     FLASH_CS_1();
@@ -214,7 +222,7 @@ static void write_page(uint32_t page, uint8_t *pHeader)
     SPI_HostWriteByte((uint8_t) (page << 2));
     SPI_HostWriteByte(0x00);
 
-    for (i = 0; i < FLASH_SECTOR_SIZE; i++)
+    for (i = 0; i < DMA_BUFFER_SIZE; i++)
     {
         SPI_HostWriteByte(*pHeader++);
     }
@@ -269,7 +277,7 @@ static rt_size_t AT45DB_flash_read(rt_device_t dev, rt_off_t pos, void* buffer, 
 {
     rt_uint32_t index, nr;
 
-    nr = size / FLASH_SECTOR_SIZE;
+    nr = size / DMA_BUFFER_SIZE;
 
     for (index = 0; index < nr; index++)
     {
@@ -277,46 +285,42 @@ static rt_size_t AT45DB_flash_read(rt_device_t dev, rt_off_t pos, void* buffer, 
 #if SPI_FLASH_USE_DMA
         uint16_t *sp, *dp, *end;
 
-        read_page((pos / FLASH_SECTOR_SIZE + index), _spi_flash_buffer);
-//    	rt_memcpy(((rt_uint8_t *) buffer + index * FLASH_SECTOR_SIZE), _spi_flash_buffer, FLASH_SECTOR_SIZE);
+        read_page((pos / DMA_BUFFER_SIZE + index), _spi_flash_buffer);
+//    	rt_memcpy(((rt_uint8_t *) buffer + index * DMA_BUFFER_SIZE), _spi_flash_buffer, DMA_BUFFER_SIZE);
         sp = (uint16_t *) _spi_flash_buffer;
         dp = (uint16_t *) buffer;
-        end = sp + FLASH_SECTOR_SIZE / 2;
+        end = sp + DMA_BUFFER_SIZE / 2;
         while (sp < end)
         {
             *dp++ = *sp++;
         }
 #else
-        read_page((pos / FLASH_SECTOR_SIZE + index), ((rt_uint8_t *) buffer + index * FLASH_SECTOR_SIZE));
+        read_page((pos / DMA_BUFFER_SIZE + index), ((rt_uint8_t *) buffer + index * DMA_BUFFER_SIZE));
 #endif
     }
 
-    return nr * FLASH_SECTOR_SIZE;
+    return nr * DMA_BUFFER_SIZE;
 }
 
 static rt_size_t AT45DB_flash_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
 {
     rt_uint32_t index, nr;
 
-    nr = size / FLASH_SECTOR_SIZE;
+    nr = size / DMA_BUFFER_SIZE;
 
     for (index = 0; index < nr; index++)
     {
         /* only supply single block write: block size 512Byte */
-        write_page((pos / FLASH_SECTOR_SIZE + index), ((rt_uint8_t *) buffer + index * FLASH_SECTOR_SIZE));
+        write_page((pos / DMA_BUFFER_SIZE + index), ((rt_uint8_t *) buffer + index * DMA_BUFFER_SIZE));
     }
 
-    return nr * FLASH_SECTOR_SIZE;
+    return nr * DMA_BUFFER_SIZE;
 }
 
 void at45dbxx_init(void)
 {
     GPIO_Configuration();
 
-#if SPI_FLASH_USE_DMA
-    /* Enable the DMA1 Clock */
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-#endif
     /* register spi_flash device */
     spi_flash_device.type    = RT_Device_Class_Block;
     spi_flash_device.init    = AT45DB_flash_init;
