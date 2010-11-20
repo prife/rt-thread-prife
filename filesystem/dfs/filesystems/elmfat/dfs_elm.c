@@ -4,6 +4,7 @@
 #include "ffconf.h"
 #include "ff.h"
 
+extern FATFS elm_get_fs(BYTE vol);
 static rt_device_t disk[_DRIVES] = {0};
 
 static int elm_result_to_dfs(FRESULT result)
@@ -538,9 +539,18 @@ DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count)
 {
 	rt_size_t result;
 	rt_device_t device = disk[drv];
+	rt_size_t s_size;
 
-	result = rt_device_read(device, sector * 512, buff, count * 512);
-	if (result == count * 512)
+#if _MAX_SS != 512
+	FATFS *fs = elm_get_fs(drv);
+	RT_ASSERT(fs != RT_NULL);
+	s_size = fs->s_size;
+#else
+	s_size = 512;
+#endif
+
+	result = rt_device_read(device, sector * s_size, buff, count * s_size);
+	if (result == count * s_size)
 	{
 		return RES_OK;
 	}
@@ -553,9 +563,18 @@ DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count)
 {
 	rt_size_t result;
 	rt_device_t device = disk[drv];
+	rt_size_t s_size;
 
-	result = rt_device_write(device, sector * 512, buff, count * 512);
-	if (result == count * 512)
+#if _MAX_SS != 512
+	FATFS *fs = elm_get_fs(drv);
+	RT_ASSERT(fs != RT_NULL);
+	s_size = fs->s_size;
+#else
+	s_size = 512;
+#endif
+
+	result = rt_device_write(device, sector * s_size, buff, count * s_size);
+	if (result == count * s_size)
 	{
 		return RES_OK;
 	}

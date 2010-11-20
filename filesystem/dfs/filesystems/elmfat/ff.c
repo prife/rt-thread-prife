@@ -3167,3 +3167,14 @@ int elm_get_vol(FATFS *fat)
 }
 #endif
 
+FATFS elm_get_fs(BYTE vol)
+{
+	FATFS *fat;
+
+	fat = NULL;
+	if (vol < _DRIVES + 1)
+		fat = FatFs[vol];
+
+	return fat;
+}
+
