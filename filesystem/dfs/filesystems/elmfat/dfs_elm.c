@@ -4,8 +4,9 @@
 #include "ffconf.h"
 #include "ff.h"
 
-extern FATFS elm_get_fs(BYTE vol);
+extern FATFS * elm_get_fs(BYTE vol);
 static rt_device_t disk[_DRIVES] = {0};
+static FATFS * fs_tab[_DRIVES];
 
 static int elm_result_to_dfs(FRESULT result)
 {
@@ -45,7 +46,7 @@ static int elm_result_to_dfs(FRESULT result)
 	case FR_MKFS_ABORTED:
 		status = -DFS_STATUS_EINVAL;
 		break;
-		
+
 	default:
 		status = -1;
 		break;
@@ -82,7 +83,10 @@ int dfs_elm_mount(struct dfs_filesystem* fs)
 	/* mount fatfs, always 0 logic driver */
 	result = f_mount(index, fat);
 	if (result == FR_OK)
+    {
 		fs->data = fat;
+		fs_tab[index] = fat;
+    }
 	else
 	{
 		rt_free(fat);
@@ -115,7 +119,7 @@ int dfs_elm_open(struct dfs_fd* file)
 #if (_DRIVES > 1)
 	int vol;
 	extern int elm_get_vol(FATFS *fat);
-	
+
 	/* add path for ELM FatFS driver support */
 	vol = elm_get_vol((FATFS *)file->fs->data);
 	if (vol < 0) return -DFS_STATUS_ENOENT;
@@ -410,7 +414,7 @@ int dfs_elm_rename(struct dfs_filesystem* fs, const char* oldpath, const char* n
 	drivers_oldfn = rt_malloc(256);
 	if (drivers_oldfn == RT_NULL) return -DFS_STATUS_ENOMEM;
 	drivers_newfn = rt_malloc(256);
-	if (drivers_newfn == RT_NULL) 
+	if (drivers_newfn == RT_NULL)
 	{
 		rt_free(drivers_oldfn);
 		return -DFS_STATUS_ENOMEM;
@@ -539,15 +543,7 @@ DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count)
 {
 	rt_size_t result;
 	rt_device_t device = disk[drv];
-	rt_size_t s_size;
-
-#if _MAX_SS != 512
-	FATFS *fs = elm_get_fs(drv);
-	RT_ASSERT(fs != RT_NULL);
-	s_size = fs->s_size;
-#else
-	s_size = 512;
-#endif
+	rt_size_t s_size = fs_tab[drv]->s_size;
 
 	result = rt_device_read(device, sector * s_size, buff, count * s_size);
 	if (result == count * s_size)
@@ -563,15 +559,7 @@ DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count)
 {
 	rt_size_t result;
 	rt_device_t device = disk[drv];
-	rt_size_t s_size;
-
-#if _MAX_SS != 512
-	FATFS *fs = elm_get_fs(drv);
-	RT_ASSERT(fs != RT_NULL);
-	s_size = fs->s_size;
-#else
-	s_size = 512;
-#endif
+	rt_size_t s_size = fs_tab[drv]->s_size;
 
 	result = rt_device_write(device, sector * s_size, buff, count * s_size);
 	if (result == count * s_size)
@@ -588,7 +576,7 @@ DRESULT disk_ioctl (BYTE drv, BYTE ctrl, void *buff)
 	rt_device_t device = disk[drv];
 
 	if (device == RT_NULL) return RES_ERROR;
-	
+
 	if (ctrl == GET_SECTOR_COUNT)
 	{
 		struct rt_device_blk_geometry geometry;
