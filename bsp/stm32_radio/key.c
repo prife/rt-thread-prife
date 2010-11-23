@@ -43,7 +43,7 @@ static void key_thread_entry(void *parameter)
 {
     rt_time_t next_delay;
     struct rtgui_event_kbd kbd_event;
-
+    rt_uint8_t i;
     GPIO_Configuration();
 
     /* init keyboard event */
@@ -59,17 +59,26 @@ static void key_thread_entry(void *parameter)
 
         if ( key_enter_GETVALUE() == 0 )
         {
-            rt_thread_delay( next_delay*4 );
-            if (key_enter_GETVALUE() == 0)
+            for(i=0; ; i++)
             {
-                /* HOME key */
-                // rt_kprintf("key_home\n");
-                kbd_event.key  = RTGUIK_HOME;
-            }
-            else
-            {
-                // rt_kprintf("key_enter\n");
-                kbd_event.key  = RTGUIK_RETURN;
+				rt_thread_delay( next_delay );
+				if (key_enter_GETVALUE() == 0)
+				{
+                    if(i>=4)
+                    {
+                        /* HOME key */
+                        //rt_kprintf("key_home\n");
+                        kbd_event.key  = RTGUIK_HOME;
+                        next_delay = RT_TICK_PER_SECOND/5;
+                        break;
+                    }
+                }
+                else
+                {
+                    //rt_kprintf("key_enter\n");
+                    kbd_event.key  = RTGUIK_RETURN;
+                    break;
+                }
             }
         }
 
@@ -102,7 +111,7 @@ static void key_thread_entry(void *parameter)
             /* post down event */
             rtgui_server_post_event(&(kbd_event.parent), sizeof(kbd_event));
 
-            next_delay = RT_TICK_PER_SECOND/10;
+            //next_delay = RT_TICK_PER_SECOND/10;
             /* delay to post up event */
             rt_thread_delay(next_delay);
 
