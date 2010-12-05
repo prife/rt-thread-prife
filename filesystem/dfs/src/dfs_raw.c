@@ -670,7 +670,7 @@ void cat(const char* filename)
 	do
 	{
 		rt_memset(buffer, 0, sizeof(buffer));
-		length = dfile_raw_read(&fd, buffer, 81);
+		length = dfile_raw_read(&fd, buffer, sizeof(buffer)-1 );
 		if (length > 0)
 		{
 			rt_kprintf("%s", buffer);
