@@ -710,6 +710,11 @@ void MSD_WriteByte(u8 Data)
   while (SPI_I2S_GetFlagStatus(MSD_SPI, SPI_I2S_FLAG_TXE) == RESET);
   /* Send the byte */
   SPI_I2S_SendData(MSD_SPI, Data);
+
+  /*!< Wait to receive a byte*/
+  while(SPI_I2S_GetFlagStatus(MSD_SPI, SPI_I2S_FLAG_RXNE) == RESET);
+  /*!< Return the byte read from the SPI bus */
+  SPI_I2S_ReceiveData(MSD_SPI);
 }
 
 /*******************************************************************************
