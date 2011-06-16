@@ -171,7 +171,7 @@ void sys_mbox_post(sys_mbox_t mbox, void *msg)
 	}
 #endif
 
-	rt_mb_send(mbox, (rt_uint32_t)msg);
+	rt_mb_send_wait(mbox, (rt_uint32_t)msg,RT_WAITING_FOREVER);
 
 	return;
 }
