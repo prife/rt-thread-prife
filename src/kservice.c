@@ -14,6 +14,7 @@
  * 2006-08-10     Bernard      add rt_show_version
  * 2010-03-17     Bernard      remove rt_strlcpy function
  *                             fix gcc compiling issue.
+ * 2010-04-15     Bernard      remove weak definition on ICCM16C compiler
  */
 
 #include <rtthread.h>
@@ -30,7 +31,9 @@ int errno;
 #else
 #include <errno.h>
 #endif
+#if defined(RT_USING_DEVICE)
 static rt_device_t _console_device = RT_NULL;
+#endif
 
 /*
  * This function will get errno
@@ -362,6 +365,21 @@ rt_ubase_t rt_strncmp(const char * cs, const char * ct, rt_ubase_t count)
 }
 
 /**
+ * This function will compare two strings without specified length
+ *
+ * @param cs the string to be compared
+ * @param ct the string to be compared
+ *
+ * @return the result
+ */
+rt_ubase_t rt_strcmp (const char *cs, const char *ct)
+{
+	while (*cs && *cs == *ct)
+		cs++, ct++;
+	return (*cs - *ct);
+}
+
+/**
  * This function will return the length of a string, which terminate will
  * null character.
  *
@@ -407,7 +425,7 @@ void rt_show_version()
 	rt_kprintf("\n \\ | /\n");
 	rt_kprintf("- RT -     Thread Operating System\n");
 	rt_kprintf(" / | \\ 0.%d.%d build %s\n", RT_VERSION, RT_SUBVERSION, __DATE__);
-	rt_kprintf(" 2006 - 2010 Copyright by rt-thread team\n");
+	rt_kprintf(" 2006 - 2011 Copyright by rt-thread team\n");
 }
 
 /* private function */
@@ -886,14 +904,15 @@ rt_int32_t rt_sprintf(char *buf ,const char *format,...)
 	return n;
 }
 
+#ifdef RT_USING_DEVICE
 /**
- * This function will set console to a device.
+ * This function will set a device as console device.
  * After set a device to console, all output of rt_kprintf will be
- * written to this device.
+ * redirected to this new device.
  *
- * @param device the new console device
+ * @param name the name of new console device
  *
- * @return the old console device
+ * @return the old console device handler
  */
 rt_device_t rt_console_set_device(const char* name)
 {
@@ -919,15 +938,17 @@ rt_device_t rt_console_set_device(const char* name)
 
 	return old;
 }
+#endif
 
 #if defined(__GNUC__)
 void rt_hw_console_output(const char* str) __attribute__((weak));
-
-
 void rt_hw_console_output(const char* str)
 #elif defined(__CC_ARM)
 __weak void rt_hw_console_output(const char* str)
 #elif defined(__IAR_SYSTEMS_ICC__)
+#if __VER__ > 540
+__weak 
+#endif
 void rt_hw_console_output(const char* str)
 #endif
 {
@@ -941,6 +962,7 @@ void rt_hw_console_output(const char* str)
  */
 void rt_kprintf(const char *fmt, ...)
 {
+
 	va_list args;
 	rt_size_t length;
 	static char rt_log_buf[RT_CONSOLEBUF_SIZE];
@@ -948,6 +970,7 @@ void rt_kprintf(const char *fmt, ...)
 	va_start(args, fmt);
 
 	length = vsnprintf(rt_log_buf, sizeof(rt_log_buf), fmt, args);
+#ifdef RT_USING_DEVICE
 	if (_console_device == RT_NULL)
 	{
         rt_hw_console_output(rt_log_buf);
@@ -956,9 +979,16 @@ void rt_kprintf(const char *fmt, ...)
 	{
 		rt_device_write(_console_device, 0, rt_log_buf, length);
 	}
-
+#else
+	rt_hw_console_output(rt_log_buf);
+#endif
 	va_end(args);
 }
+#else
+void rt_kprintf(const char *fmt, ...)
+{
+}
+#endif
 
 #if !defined (RT_USING_NEWLIB) && defined (RT_USING_MINILIBC) && defined (__GNUC__)
 #include <sys/types.h>
@@ -975,6 +1005,11 @@ int strncmp(const char *cs, const char *ct, size_t count) __attribute__((weak, a
 #ifdef RT_USING_HEAP
 char *strdup(const char *s) __attribute__((weak, alias("rt_strdup")));
 #endif
+
+int sprintf(char * buf,const char * format,...) __attribute__((weak, alias("rt_sprintf")));
+int snprintf(char *buf, rt_size_t size, const char *fmt, ...) __attribute__((weak, alias("rt_snprintf")));
+int vsprintf(char *buf, const char *format, va_list arg_ptr) __attribute__((weak, alias("rt_vsprintf")));
+
 #endif
 
 /*@}*/

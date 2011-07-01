@@ -118,7 +118,7 @@ static void _rt_scheduler_stack_check(struct rt_thread* thread)
 
 /**
  * @ingroup SystemInit
- * This function will init the system scheduler
+ * This function will initialize the system scheduler
  *
  */
 void rt_system_scheduler_init(void)

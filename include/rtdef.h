@@ -23,7 +23,7 @@ extern "C" {
 
 /* RT-Thread version information */
 #define RT_VERSION						3L
-#define RT_SUBVERSION					1L
+#define RT_SUBVERSION					2L
 
 /* date type defination					*/
 typedef signed 	 char  					rt_int8_t;
@@ -71,7 +71,7 @@ typedef rt_uint32_t						rt_off_t;		/* Type for offset.							*/
     #define UNUSED
 	#define PRAGMA(x)					_Pragma(#x)
 	#define ALIGN(n)					PRAGMA(data_alignment=n)
-    #define rt_inline 					inline
+    #define rt_inline 					static inline
 
 #elif defined (__GNUC__)        		/* GNU GCC Compiler */
     #ifdef RT_USING_NEWLIB
@@ -108,15 +108,15 @@ typedef rt_uint32_t						rt_off_t;		/* Type for offset.							*/
  * @addtogroup Error
  */
 /*@{*/
-/* RT-Thread error code definitions */
-#define RT_EOK							0				/* There is no error 						*/
-#define RT_ERROR						1				/* A generic error happens 					*/
-#define RT_ETIMEOUT						2				/* Timed out 								*/
-#define RT_EFULL						3				/* The resource is full						*/
-#define RT_EEMPTY						4				/* The resource is empty 					*/
-#define RT_ENOMEM						5				/* No memory								*/
-#define RT_ENOSYS						6				/* No system 								*/
-#define RT_EBUSY						7				/* Busy										*/
+/** RT-Thread error code definitions */
+#define RT_EOK							0				/**< There is no error 					*/
+#define RT_ERROR						1				/**< A generic error happens 			*/
+#define RT_ETIMEOUT						2				/**< Timed out 							*/
+#define RT_EFULL						3				/**< The resource is full				*/
+#define RT_EEMPTY						4				/**< The resource is empty 				*/
+#define RT_ENOMEM						5				/**< No memory							*/
+#define RT_ENOSYS						6				/**< No system 							*/
+#define RT_EBUSY						7				/**< Busy								*/
 /*@}*/
 
 #ifdef RT_DEBUG
@@ -175,7 +175,6 @@ typedef struct rt_object* rt_object_t;					/* Type for kernel objects. 				*/
  *	The object type can be one of the follows with specific
  *	macros enabled:
  *	- Thread
- *	- Process
  *	- Semaphore
  *	- Mutex
  *	- Event
@@ -189,41 +188,41 @@ typedef struct rt_object* rt_object_t;					/* Type for kernel objects. 				*/
  */
 enum rt_object_class_type
 {
-	RT_Object_Class_Thread = 0,							/* The object is a thread. 					*/
+	RT_Object_Class_Thread = 0,							/**< The object is a thread. 				*/
 #ifdef RT_USING_SEMAPHORE
-	RT_Object_Class_Semaphore,							/* The object is a semaphore. 				*/
+	RT_Object_Class_Semaphore,							/**< The object is a semaphore. 			*/
 #endif
 #ifdef RT_USING_MUTEX
-	RT_Object_Class_Mutex,								/* The object is a mutex. 					*/
+	RT_Object_Class_Mutex,								/**< The object is a mutex. 				*/
 #endif
 #ifdef RT_USING_EVENT
-	RT_Object_Class_Event,								/* The object is a event. 					*/
+	RT_Object_Class_Event,								/**< The object is a event. 				*/
 #endif
 #ifdef RT_USING_MAILBOX
-	RT_Object_Class_MailBox,							/* The object is a mail box. 				*/
+	RT_Object_Class_MailBox,							/**< The object is a mail box. 				*/
 #endif
 #ifdef RT_USING_MESSAGEQUEUE
-	RT_Object_Class_MessageQueue,						/* The object is a message queue. 			*/
+	RT_Object_Class_MessageQueue,						/**< The object is a message queue. 		*/
 #endif
 #ifdef RT_USING_MEMPOOL
-	RT_Object_Class_MemPool,							/* The object is a memory pool. 			*/
+	RT_Object_Class_MemPool,							/**< The object is a memory pool. 			*/
 #endif
 #ifdef RT_USING_DEVICE
-	RT_Object_Class_Device,								/* The object is a device 					*/
+	RT_Object_Class_Device,								/**< The object is a device 				*/
 #endif
-	RT_Object_Class_Timer,								/* The object is a timer. 					*/
-	RT_Object_Class_Unknown,							/* The object is unknown. 					*/
-	RT_Object_Class_Static = 0x80						/* The object is a static object. 			*/
+	RT_Object_Class_Timer,								/**< The object is a timer. 				*/
+	RT_Object_Class_Unknown,							/**< The object is unknown. 				*/
+	RT_Object_Class_Static = 0x80						/**< The object is a static object. 		*/
 };
 
-/*
- * the information of the kernel object
+/**
+ * The information of the kernel object
  */
 struct rt_object_information
 {
-	enum rt_object_class_type type;						/* object class type. 						*/
-	rt_list_t object_list;								/* object list. 							*/
-	rt_size_t object_size;								/* object size. 							*/
+	enum rt_object_class_type type;						/**< object class type 						*/
+	rt_list_t object_list;								/**< object list 							*/
+	rt_size_t object_size;								/**< object size 							*/
 };
 /*@}*/
 
@@ -235,18 +234,18 @@ struct rt_object_information
 /*
  * clock & timer macros
  */
-#define RT_TIMER_FLAG_DEACTIVATED		0x0				/* timer is deactive. 						*/
-#define RT_TIMER_FLAG_ACTIVATED			0x1				/* timer is active. 						*/
-#define RT_TIMER_FLAG_ONE_SHOT			0x0				/* one shot timer. 							*/
-#define RT_TIMER_FLAG_PERIODIC			0x2				/* periodic timer. 							*/
+#define RT_TIMER_FLAG_DEACTIVATED		0x0				/**< timer is deactive 						*/
+#define RT_TIMER_FLAG_ACTIVATED			0x1				/**< timer is active 						*/
+#define RT_TIMER_FLAG_ONE_SHOT			0x0				/**< one shot timer							*/
+#define RT_TIMER_FLAG_PERIODIC			0x2				/**< periodic timer 						*/
 
-#define RT_TIMER_FLAG_HARD_TIMER		0x0				/* hard timer,the timer's callback function will be called in tick isr. 	*/
-#define RT_TIMER_FLAG_SOFT_TIMER		0x4				/* soft timer,the timer's callback function will be called in timer thread. */
+#define RT_TIMER_FLAG_HARD_TIMER		0x0				/**< hard timer,the timer's callback function will be called in tick isr. 	*/
+#define RT_TIMER_FLAG_SOFT_TIMER		0x4				/**< soft timer,the timer's callback function will be called in timer thread. */
 
-#define RT_TIMER_CTRL_SET_TIME			0x0				/* set timer. 								*/
-#define RT_TIMER_CTRL_GET_TIME			0x1				/* get timer. 								*/
-#define RT_TIMER_CTRL_SET_ONESHOT		0x2				/* change timer to one shot. 				*/
-#define RT_TIMER_CTRL_SET_PERIODIC		0x3				/* change timer to periodic. 				*/
+#define RT_TIMER_CTRL_SET_TIME			0x0				/**< set timer control command 				*/
+#define RT_TIMER_CTRL_GET_TIME			0x1				/**< get timer control command 				*/
+#define RT_TIMER_CTRL_SET_ONESHOT		0x2				/**< change timer to one shot 				*/
+#define RT_TIMER_CTRL_SET_PERIODIC		0x3				/**< change timer to periodic 				*/
 
 /*
  * timer structure
@@ -254,15 +253,15 @@ struct rt_object_information
  */
 struct rt_timer
 {
-	struct rt_object parent;
+	struct rt_object parent;							/**< inherit from rt_object 				*/
 
-	rt_list_t list;										/* the node of timer list. 					*/
+	rt_list_t list;										/**< the node of timer list 				*/
 
-	void (*timeout_func)(void* parameter);				/* timeout function. 						*/
-	void *parameter;									/* timeout function's parameter. 			*/
+	void (*timeout_func)(void* parameter);				/**< timeout function 						*/
+	void *parameter;									/**< timeout function's parameter 			*/
 
-	rt_tick_t init_tick;								/* timer timeout tick. 						*/
-	rt_tick_t timeout_tick;								/* timeout tick. 							*/
+	rt_tick_t init_tick;								/**< timer timeout tick						*/
+	rt_tick_t timeout_tick;								/**< timeout tick 							*/
 };
 typedef struct rt_timer* rt_timer_t;
 /*@}*/
@@ -292,7 +291,6 @@ typedef struct rt_timer* rt_timer_t;
 #define RT_THREAD_CTRL_INFO				0x03			/* Get thread information. 					*/
 
 typedef struct rt_thread* rt_thread_t;
-typedef struct rt_module* rt_module_t;
 
 /*
  * Thread related structure

@@ -752,7 +752,7 @@ rt_err_t rt_mutex_release(rt_mutex_t mutex)
 			thread = rt_list_entry(mutex->parent.suspend_thread.next, struct rt_thread, tlist);
 
 #ifdef RT_IPC_DEBUG
-		rt_kprintf("mutex_release: resume thread: %s\n", thread->name);
+			rt_kprintf("mutex_release: resume thread: %s\n", thread->name);
 #endif
 			/* set new owner and priority */
 			mutex->owner = thread;
@@ -795,7 +795,7 @@ rt_err_t rt_mutex_release(rt_mutex_t mutex)
  */
 rt_err_t rt_mutex_control(rt_mutex_t mutex, rt_uint8_t cmd, void* arg)
 {
-	return RT_EOK;
+	return -RT_ERROR;
 }
 
 #endif /* end of RT_USING_MUTEX */
@@ -1683,7 +1683,7 @@ rt_err_t rt_mq_delete (rt_mq_t mq)
 	/* free mailbox pool */
 	rt_free(mq->msg_pool);
 
-	/* delete mailbox object */
+	/* delete message queue object */
 	rt_object_delete(&(mq->parent.parent));
 
 	return RT_EOK;

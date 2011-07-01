@@ -9,10 +9,11 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2008-7-12     Bernard      the first version
+ * 2008-7-12      Bernard      the first version
  * 2010-06-09     Bernard      fix the end stub of heap
  *                             fix memory check in rt_realloc function
  * 2010-07-13     Bernard      fix RT_ALIGN issue found by kuronca
+ * 2010-10-14     Bernard      fix rt_realloc issue when realloc a NULL pointer.
  */
 
 /*
@@ -171,13 +172,11 @@ void rt_system_heap_init(void* begin_addr, void* end_addr)
 
 	/* alignment addr */
 	if((end_align > (2 * SIZEOF_STRUCT_MEM) ) &&
-		((end_align - 2 * SIZEOF_STRUCT_MEM) >= begin_align ))
-   {
-	    /* calculate the aligned memory size */
+		((end_align - 2 * SIZEOF_STRUCT_MEM) >= begin_align )) {
+	/* calculate the aligned memory size */
 		mem_size_aligned = end_align - begin_align - 2 * SIZEOF_STRUCT_MEM;
 	}
-	else
-    {
+	else {
 		rt_kprintf("mem init, error begin address 0x%x, and end address 0x%x\n", (rt_uint32_t)begin_addr, (rt_uint32_t)end_addr);
 		return;
 	}
@@ -230,8 +229,8 @@ void *rt_malloc(rt_size_t size)
 	if (size == 0) return RT_NULL;
 
 #ifdef RT_MEM_DEBUG
-	if (size != RT_ALIGN(size, RT_ALIGN_SIZE)
-	    rt_kprintf("malloc size %d, but align to %d\n", size, RT_ALIGN(size, RT_ALIGN_SIZE));
+	if (size != RT_ALIGN(size, RT_ALIGN_SIZE))
+		rt_kprintf("malloc size %d, but align to %d\n", size, RT_ALIGN(size, RT_ALIGN_SIZE));
 	else
 		rt_kprintf("malloc size %d\n", size);
 #endif
@@ -280,13 +279,11 @@ void *rt_malloc(rt_size_t size)
 
 				/* create mem2 struct */
 				mem2 = (struct heap_mem *)&heap_ptr[ptr2];
-				mem2->magic = HEAP_MAGIC;
 				mem2->used = 0;
 				mem2->next = mem->next;
 				mem2->prev = ptr;
 
 				/* and insert it between mem and mem->next */
-				mem->magic = HEAP_MAGIC;
 				mem->next = ptr2;
 				mem->used = 1;
 
@@ -314,6 +311,8 @@ void *rt_malloc(rt_size_t size)
 				if (max_mem < used_mem) max_mem = used_mem;
 #endif
 			}
+			/* set memory block magic */
+			mem->magic = HEAP_MAGIC;
 
 			if (mem == lfree)
 			{
@@ -329,7 +328,9 @@ void *rt_malloc(rt_size_t size)
 			RT_ASSERT((((rt_uint32_t)mem) & (RT_ALIGN_SIZE-1)) == 0);
 
 #ifdef RT_MEM_DEBUG
-			rt_kprintf("allocate memory at 0x%x\n", (rt_uint32_t)((rt_uint8_t*)mem + SIZEOF_STRUCT_MEM));
+			rt_kprintf("allocate memory at 0x%x, size: %d\n", 
+				(rt_uint32_t)((rt_uint8_t*)mem + SIZEOF_STRUCT_MEM),
+				(rt_uint32_t)(mem->next - ((rt_uint8_t*)mem - heap_ptr)));
 #endif
 
 #ifdef RT_USING_HOOK
@@ -369,6 +370,10 @@ void *rt_realloc(void *rmem, rt_size_t newsize)
 #endif
 		return RT_NULL;
 	}
+
+	/* allocate a new memory block */
+	if (rmem == RT_NULL)
+		return rt_malloc(newsize);
 
 	rt_sem_take(&heap_sem, RT_WAITING_FOREVER);
 
@@ -421,7 +426,7 @@ void *rt_realloc(void *rmem, rt_size_t newsize)
 	nmem = rt_malloc(newsize);
 	if (nmem != RT_NULL) /* check memory */
 	{
-		rt_memcpy(nmem, rmem, size < newsize ? size : newsize);
+		rt_memcpy(nmem, rmem, size < newsize ? size : newsize);	
 		rt_free(rmem);
 	}
 
@@ -465,38 +470,39 @@ void rt_free(void *rmem)
 
 	if (rmem == RT_NULL) return;
 	RT_ASSERT((((rt_uint32_t)rmem) & (RT_ALIGN_SIZE-1)) == 0);
+	RT_ASSERT((rt_uint8_t *)rmem >= (rt_uint8_t *)heap_ptr &&
+			  (rt_uint8_t *)rmem < (rt_uint8_t *)heap_end);
 
 #ifdef RT_USING_HOOK
 	if (rt_free_hook != RT_NULL) rt_free_hook(rmem);
 #endif
-
-#ifdef RT_MEM_DEBUG
-	rt_kprintf("release memory 0x%x\n", (rt_uint32_t)rmem);
-#endif
-
-	/* protect the heap from concurrent access */
-	rt_sem_take(&heap_sem, RT_WAITING_FOREVER);
-
-	RT_ASSERT((rt_uint8_t *)rmem >= (rt_uint8_t *)heap_ptr &&
-			  (rt_uint8_t *)rmem < (rt_uint8_t *)heap_end);
 
 	if ((rt_uint8_t *)rmem < (rt_uint8_t *)heap_ptr || (rt_uint8_t *)rmem >= (rt_uint8_t *)heap_end)
 	{
 #ifdef RT_MEM_DEBUG
 		rt_kprintf("illegal memory\n");
 #endif
-		/* illegal memory */
-		rt_sem_release(&heap_sem);
 		return;
 	}
 
 	/* Get the corresponding struct heap_mem ... */
 	mem = (struct heap_mem *)((rt_uint8_t *)rmem - SIZEOF_STRUCT_MEM);
+
+#ifdef RT_MEM_DEBUG
+	rt_kprintf("release memory 0x%x, size: %d\n", 
+		(rt_uint32_t)rmem, 
+		(rt_uint32_t)(mem->next - ((rt_uint8_t*)mem - heap_ptr)));
+#endif
+
+	/* protect the heap from concurrent access */
+	rt_sem_take(&heap_sem, RT_WAITING_FOREVER);
+
 	/* ... which has to be in a used state ... */
 	RT_ASSERT(mem->used);
 	RT_ASSERT(mem->magic == HEAP_MAGIC);
 	/* ... and is now unused. */
 	mem->used = 0;
+	mem->magic = 0;
 
 	if (mem < lfree)
 	{
