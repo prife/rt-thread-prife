@@ -27,7 +27,7 @@
 
 #ifndef RT_USING_NEWLIB
 /* global errno in RT-Thread*/
-int errno;
+volatile int errno;
 #else
 #include <errno.h>
 #endif
@@ -984,11 +984,6 @@ void rt_kprintf(const char *fmt, ...)
 #endif
 	va_end(args);
 }
-#else
-void rt_kprintf(const char *fmt, ...)
-{
-}
-#endif
 
 #if !defined (RT_USING_NEWLIB) && defined (RT_USING_MINILIBC) && defined (__GNUC__)
 #include <sys/types.h>
