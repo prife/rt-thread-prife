@@ -3090,29 +3090,10 @@ void rt_hw_stm32_eth_isr(int irqno)
 {
 	rt_uint32_t status;
 
-	status = ETH->DMASR;
-
-#if STM32_ETH_DEBUG
-	rt_kprintf("eth dma status: 0x%08x\n", ETH->DMASR);
-#endif
-	
-	//Clear received IT
-	if ((status & ETH_DMA_IT_NIS) != (u32)RESET)
-		ETH->DMASR = (u32)ETH_DMA_IT_NIS;
-	if ((status & ETH_DMA_IT_AIS) != (u32)RESET)
-		ETH->DMASR = (u32)ETH_DMA_IT_AIS;
-	if ((status & ETH_DMA_IT_RO) != (u32)RESET)
-		ETH->DMASR = (u32)ETH_DMA_IT_RO;
-	if ((status & ETH_DMA_IT_RBU) != (u32)RESET)
-		ETH->DMASR = (u32)ETH_DMA_IT_RBU;
-
 	if (ETH_GetDMAITStatus(ETH_DMA_IT_R) == SET) /* packet receiption */
 	{
-		rt_err_t result;
-
 		/* a frame has been received */
-		result = eth_device_ready(&(stm32_eth_device.parent));
-		RT_ASSERT(result == RT_EOK);
+		eth_device_ready(&(stm32_eth_device.parent));
 
 		ETH_DMAClearITPendingBit(ETH_DMA_IT_R);
 	}
@@ -3127,6 +3108,25 @@ void rt_hw_stm32_eth_isr(int irqno)
 
 		ETH_DMAClearITPendingBit(ETH_DMA_IT_T);
 	}
+
+	status = ETH->DMASR;
+	/* Clear received IT */
+	if ((status & ETH_DMA_IT_NIS) != (u32)RESET)
+		ETH->DMASR = (u32)ETH_DMA_IT_NIS;
+	if ((status & ETH_DMA_IT_AIS) != (u32)RESET)
+		ETH->DMASR = (u32)ETH_DMA_IT_AIS;
+	if ((status & ETH_DMA_IT_RO) != (u32)RESET)
+		ETH->DMASR = (u32)ETH_DMA_IT_RO;
+	if ((status & ETH_DMA_IT_RBU) != (u32)RESET)
+	{
+		ETH_ResumeDMAReception();
+		ETH->DMASR = (u32)ETH_DMA_IT_RBU;
+	}
+	if ((status & ETH_DMA_IT_TBU) != (u32)RESET)
+	{
+		ETH_ResumeDMATransmission();
+		ETH->DMASR = (u32)ETH_DMA_IT_TBU;
+	} 
 }
 
 /* RT-Thread Device Interface */
