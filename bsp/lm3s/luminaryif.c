@@ -120,10 +120,8 @@ void luminaryif_isr(void)
         //
         // Indicate that a packet has been received.
         //
-        rt_err_t result;
         /* a frame has been received */
-        result = eth_device_ready((struct eth_device*)&(luminaryif_dev->parent));
-        RT_ASSERT(result == RT_EOK);
+        eth_device_ready((struct eth_device*)&(luminaryif_dev->parent));
         //
         // Disable Ethernet RX Interrupt.
         //
@@ -481,6 +479,6 @@ int rt_hw_luminaryif_init(void)
 
 	result = eth_device_init(&(luminaryif_dev->parent), "E0");
 
-	return RT_EOK;
+	return result;
 }
 

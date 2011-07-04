@@ -96,10 +96,6 @@ File 7,1,<..\..\net\lwip\src\arch\sys_arch_init.c><sys_arch_init.c>
 File 7,1,<..\..\net\lwip\src\arch\sys_arch.c><sys_arch.c>
 File 7,1,<..\..\net\lwip\src\api\sockets.c><sockets.c>
 File 7,1,<..\..\net\lwip\src\core\memp.c><memp.c>
-File 7,1,<..\..\net\lwip\src\core\snmp\asn1_dec.c><asn1_dec.c>
-File 7,1,<..\..\net\lwip\src\core\snmp\asn1_enc.c><asn1_enc.c>
-File 7,1,<..\..\net\lwip\src\core\snmp\mib2.c><mib2.c>
-File 7,1,<..\..\net\lwip\src\core\snmp\mib_structs.c><mib_structs.c>
 
 
 Options 1,0,0  // Target 'RT-Thread-LM3S'
@@ -160,7 +156,7 @@ Options 1,0,0  // Target 'RT-Thread-LM3S'
  ADSCMISC ()
  ADSCDEFN ()
  ADSCUDEF ()
- ADSCINCD (.;.\Libraries;..\..\include;..\..\libcpu\arm\lm3s;..\..\finsh;..\..\filesystem\dfs;..\..\filesystem\dfs\include;..\..\net\lwip\src;..\..\net\lwip\src\include;..\..\net\lwip\src\arch\include;..\..\net\lwip\src\include\ipv4;..\..\filesystem\dfs\include;..\..\filesystem\dfs\filesystems\efsl\src\include;..\..\filesystem\dfs\filesystems\efsl\src\base\include;..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\include)
+ ADSCINCD (.;.\Libraries;.\Libraries\driverlib;..\..\include;..\..\libcpu\arm\lm3s;..\..\finsh;..\..\filesystem\dfs;..\..\filesystem\dfs\include;..\..\net\lwip\src;..\..\net\lwip\src\include;..\..\net\lwip\src\arch\include;..\..\net\lwip\src\include\ipv4;..\..\filesystem\dfs\include;..\..\filesystem\dfs\filesystems\efsl\src\include;..\..\filesystem\dfs\filesystems\efsl\src\base\include;..\..\filesystem\dfs\filesystems\efsl\src\fs\vfat\include)
  ADSASFLG { 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
  ADSAMISC ()
  ADSADEFN ()

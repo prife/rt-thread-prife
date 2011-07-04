@@ -16,7 +16,7 @@
 
 /* SECTION: RT_DEBUG */
 /* Thread Debug*/
-/* #define RT_DEBUG*/
+#define RT_DEBUG
 /* #define RT_THREAD_DEBUG */
 
 /* Using Hook*/
@@ -123,7 +123,7 @@
 /* TCP sender buffer space*/
 #define RT_LWIP_TCP_SND_BUF	1024*8
 /* Enable SNMP protocol*/
-#define RT_LWIP_SNMP
+/* #define RT_LWIP_SNMP */
 
 /* Using DHCP*/
 /* #define RT_LWIP_DHCP */
