@@ -513,7 +513,7 @@ def PrepareBuilding(env, root_directory, has_libcpu=False):
     if not has_libcpu:
         objs.append(SConscript('libcpu/SConscript', variant_dir='build/libcpu', duplicate=0))
     # include components
-    objs.append(SConscript('components/SConscript', variant_dir='build/components', duplicate=0))
+    objs.append(SConscript(os.path.join(Rtt_Root, 'components/SConscript'), variant_dir='build/components', duplicate=0))
 
     return objs
 
