@@ -198,7 +198,7 @@ rt_inline rt_uint32_t fls(rt_uint32_t val)
 	return bit;
 }
 
-#if !defined(__GNUC__)
+#if !defined(__GNUC__) || defined(__CC_ARM)
 rt_inline rt_uint32_t ffs(rt_uint32_t x)
 {
         int r = 1;
