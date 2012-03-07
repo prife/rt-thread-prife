@@ -33,7 +33,7 @@ extern const uint32_t SystemFrequency;
  * This is the timer interrupt service routine.
  *
  */
-void rt_hw_timer_handler(void)
+void SysTick_Handler(void)
 {
 	/* enter interrupt */
 	rt_interrupt_enter();
@@ -47,7 +47,7 @@ void rt_hw_timer_handler(void)
 /**
 * This function will initial FM3 Easy Kit board.
  */
-void rt_hw_board_init()
+void rt_hw_board_init(void)
 {
     /* init systick */
     SysTick_Config(SystemFrequency/RT_TICK_PER_SECOND);
