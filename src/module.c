@@ -381,6 +381,8 @@ static struct rt_module* _load_shared_object(const char* name, void* module_ptr)
 	module = (struct rt_module *)rt_object_allocate(RT_Object_Class_Module, name);
 	if (!module) return RT_NULL;
 
+	module->nref = 0;
+	
 	/* allocate module space */
 	module->module_space = rt_malloc(module_size);
 	if (module->module_space == RT_NULL)
@@ -761,10 +763,10 @@ rt_module_t rt_module_load(const char* name, void* module_ptr)
 
 	if (elf_module->e_entry != 0)
 	{	
+#ifdef RT_USING_SLAB
 		/* init module memory allocator */
 		module->mem_list = RT_NULL;
 
-#ifdef RT_USING_SLAB
 		/* create page array */
 		module->page_array = (void *)rt_malloc(PAGE_COUNT_MAX * sizeof(struct rt_page_info));
 		module->page_cnt = 0;
@@ -896,7 +898,7 @@ rt_err_t rt_module_unload(rt_module_t module)
 	rt_kprintf("rt_module_unload: %s\n", module->parent.name);
 
 	/* module has entry point */
-	if ((module->parent.flag & RT_MODULE_FLAG_WITHOUTENTRY) != RT_MODULE_FLAG_WITHOUTENTRY)
+	if (!(module->parent.flag & RT_MODULE_FLAG_WITHOUTENTRY))
 	{
 		/* suspend module main thread */
 		if (module->module_thread != RT_NULL)
@@ -1092,7 +1094,10 @@ rt_err_t rt_module_unload(rt_module_t module)
 	}
 #endif
 
-	rt_free(module->page_array);
+#ifdef RT_USING_SLAB
+	if(module->page_array != RT_NULL) 
+		rt_free(module->page_array);
+#endif
 
 	/* delete module object */
 	rt_object_delete((rt_object_t)module);
