@@ -15,6 +15,7 @@
  * 2007-01-28     Bernard      rename RT_OBJECT_Class_Static to RT_Object_Class_Static
  * 2007-03-03     Bernard      clean up the definitions to rtdef.h
  * 2010-04-11     yi.qiu       add module feature
+ * 2012-11-03     Bernard      remove repeated rt_sprintf declaration. 
  */
 
 #ifndef __RT_THREAD_H__
@@ -354,7 +355,6 @@ rt_uint8_t rt_interrupt_get_nest(void);
 /*
  * general kernel service
  */
-rt_int32_t rt_sprintf(char *buf ,const char *format, ...);
 rt_int32_t rt_vsprintf(char *dest, const char *format, va_list arg_ptr);
 rt_int32_t rt_sprintf(char *buf ,const char *format, ...);
 rt_int32_t rt_snprintf(char *buf, rt_size_t size, const char *format, ...);
